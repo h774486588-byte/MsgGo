@@ -35,8 +35,7 @@ import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
 import top.yztz.msggo.R;
 import top.yztz.msggo.data.Message;
@@ -55,9 +54,10 @@ public class MessageService extends Service {
 
     private final IBinder binder = new LocalBinder();
     private Callback callback = null;
+    private final String statusToken = UUID.randomUUID().toString();
     private final BroadcastReceiver smsStatusReceiver = new SMSBroadcastReceiver((code, success) -> {
         if (callback != null) callback.onMessageConfirmed(code, success);
-    });
+    }, statusToken);
     
     private int totalMessages = 0;
     private int submittedCount = 0;
@@ -118,11 +118,15 @@ public class MessageService extends Service {
      * Send a single message immediately.
      */
     public void sendOne(Message message, int index, int subId) {
-        SMSSender.sendMessage(getApplicationContext(), message.getContent(), message.getPhone(), subId, index);
+        boolean submitted = SMSSender.sendMessage(getApplicationContext(), message.getContent(),
+                message.getPhone(), subId, index, statusToken);
         submittedCount++;
         updateNotification(submittedCount, totalMessages);
         if (callback != null) {
             callback.onMessageSubmitted(index);
+            if (!submitted) {
+                callback.onMessageConfirmed(index, false);
+            }
         }
         Log.d(TAG, "Submitted message " + (index + 1) + "/" + totalMessages);
     }
@@ -192,7 +196,9 @@ public class MessageService extends Service {
 
     private void registerSmsReceiver() {
         IntentFilter filter = new IntentFilter(SMSSender.SENT_SMS_ACTION);
-        ContextCompat.registerReceiver(this, smsStatusReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED);
+        // SmsManager sends the PendingIntent from the privileged telephony process. Such
+        // broadcasts are not delivered to a RECEIVER_NOT_EXPORTED runtime receiver.
+        ContextCompat.registerReceiver(this, smsStatusReceiver, filter, ContextCompat.RECEIVER_EXPORTED);
     }
 
     private void unregisterSmsReceiver() {

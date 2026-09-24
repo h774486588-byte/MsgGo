@@ -22,6 +22,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.telephony.SmsManager;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -33,6 +34,7 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
 
     private static final String TAG = "SMSBroadcastReceiver";
     private final Callback callback;
+    private final String expectedStatusToken;
     private final Map<Integer, SmsStatus> smsStatusMap = new HashMap<>();
 
     // 短信状态追踪类
@@ -55,12 +57,18 @@ public class SMSBroadcastReceiver extends BroadcastReceiver {
         void onSent(int code, boolean success);
     }
 
-    public SMSBroadcastReceiver(Callback callback) {
+    public SMSBroadcastReceiver(Callback callback, String expectedStatusToken) {
         this.callback = callback;
+        this.expectedStatusToken = expectedStatusToken;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (!TextUtils.equals(expectedStatusToken, intent.getStringExtra("statusToken"))) {
+            Log.w(TAG, "Ignoring SMS status with an invalid session token");
+            return;
+        }
+
         int code = intent.getIntExtra("code", -1);
         String phone = intent.getStringExtra("phone");
         int part = intent.getIntExtra("part", -1);

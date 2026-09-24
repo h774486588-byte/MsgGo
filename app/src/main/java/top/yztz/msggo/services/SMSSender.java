@@ -72,8 +72,11 @@ public class SMSSender {
      * @param phoneNumber 电话号码
      * @param subId       SIM 卡订阅 ID
      * @param code        独一无二的请求码（用以广播接收）
+     * @param statusToken 当前发送会话的状态校验令牌
+     * @return 是否已成功提交给系统短信服务
      */
-    public static void sendMessage(Context context, String content, String phoneNumber, int subId, int code) {
+    public static boolean sendMessage(Context context, String content, String phoneNumber,
+                                      int subId, int code, String statusToken) {
         try {
             final SmsManager manager;
 
@@ -91,26 +94,36 @@ public class SMSSender {
             if (messageCount > 1) {
                 ArrayList<PendingIntent> sentIntents = new ArrayList<>();
                 for (int i = 0; i < messageCount; i++) {
-                    Intent sentIntent = new Intent(SENT_SMS_ACTION);
-                    sentIntent.putExtra("code", code);
-                    sentIntent.putExtra("phone", phoneNumber);
-                    sentIntent.putExtra("part", i);
-                    sentIntent.putExtra("totalParts", messageCount);
+                    Intent sentIntent = createSentIntent(context, code, phoneNumber, i,
+                            messageCount, statusToken);
                     sentIntents.add(PendingIntent.getBroadcast(context,
                             code * 1000 + i, sentIntent, flags));
                 }
                 manager.sendMultipartTextMessage(phoneNumber, null, msgs, sentIntents, null);
             } else {
-                Intent sentIntent = new Intent(SENT_SMS_ACTION);
-                sentIntent.putExtra("code", code);
-                sentIntent.putExtra("phone", phoneNumber);
-                sentIntent.putExtra("part", 0);
-                sentIntent.putExtra("totalParts", 1);
+                Intent sentIntent = createSentIntent(context, code, phoneNumber, 0, 1,
+                        statusToken);
                 PendingIntent sentPI = PendingIntent.getBroadcast(context, code, sentIntent, flags);
                 manager.sendTextMessage(phoneNumber, null, content, sentPI, null);
             }
+            return true;
         } catch (Exception e) {
             android.util.Log.e("SMSSender", "Failed to send SMS", e);
+            return false;
         }
+    }
+
+    private static Intent createSentIntent(Context context, int code, String phoneNumber,
+                                           int part, int totalParts, String statusToken) {
+        Intent intent = new Intent(SENT_SMS_ACTION);
+        // Keep the PendingIntent callback inside this app even though the runtime receiver must
+        // be exported to receive results from the privileged telephony process.
+        intent.setPackage(context.getPackageName());
+        intent.putExtra("code", code);
+        intent.putExtra("phone", phoneNumber);
+        intent.putExtra("part", part);
+        intent.putExtra("totalParts", totalParts);
+        intent.putExtra("statusToken", statusToken);
+        return intent;
     }
 }
