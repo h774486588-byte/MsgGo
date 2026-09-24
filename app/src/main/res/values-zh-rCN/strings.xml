@@ -112,8 +112,7 @@
     <string name="notification_title">MsgGo 短信群发</string>
     <string name="notification_progress_format">正在发送: %1$d/%2$d</string>
     <string name="select_number_column_dialog_title">选择号码列</string>
-    <string name="preview_title">消息预览</string>
-    <string name="preview_msg_format">收件人：%1$s\n内容预览：\n%2$s</string>
+    <string name="preview_recipient_title">To %1$s</string>
     <string name="no_recipients_selected">当前还未选择任何收件人哦~</string>
     <string name="confirm_send_title">确认发送</string>
     <string name="confirm_send_msg_format">确定向已选的 %1$d 位联系人发送短信吗？\n预计产生费用：¥%2$.2f</string>

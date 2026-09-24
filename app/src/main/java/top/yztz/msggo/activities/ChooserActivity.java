@@ -102,10 +102,9 @@ public class ChooserActivity extends AppCompatActivity {
             String recipient = dataMap.get(DataModel.getNumberColumn());
 
             new MaterialAlertDialogBuilder(this)
-                    .setTitle(getString(R.string.preview_title))
-                    .setMessage(getString(R.string.preview_msg_format,
-                            TextUtils.isEmpty(recipient) ? getString(R.string.unknown) : recipient,
-                            content))
+                    .setTitle(getString(R.string.preview_recipient_title,
+                            TextUtils.isEmpty(recipient) ? getString(R.string.unknown) : recipient))
+                    .setMessage(content)
                     .setPositiveButton(getString(R.string.ok), null)
                     .show();
         });
