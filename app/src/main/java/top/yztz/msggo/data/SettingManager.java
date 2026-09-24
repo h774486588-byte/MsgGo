@@ -86,8 +86,10 @@ public class SettingManager {
     }
 
     public static void setAutoEnterEditor(boolean flag) {
+        boolean previous = autoEnterEditor();
         mEditor.putBoolean(EDIT_AFTER_IMPORT_KEY, flag);
         mEditor.apply();
+        logConfigChange(EDIT_AFTER_IMPORT_KEY, previous, flag);
     }
 
     public static int getDelay() {
@@ -95,8 +97,10 @@ public class SettingManager {
     }
 
     public static void setDelay(int num) {
+        int previous = getDelay();
         mEditor.putInt(SEND_DELAY_KEY, num);
         mEditor.apply();
+        logConfigChange(SEND_DELAY_KEY, previous, num);
     }
 
     public static float getSmsRate() {
@@ -104,7 +108,9 @@ public class SettingManager {
     }
 
     public static void setSmsRate(float rate) {
+        float previous = getSmsRate();
         mEditor.putFloat(SMS_RATE_KEY, rate).apply();
+        logConfigChange(SMS_RATE_KEY, previous, rate);
     }
 
     public static boolean isPrivacyAccepted() {
@@ -112,7 +118,9 @@ public class SettingManager {
     }
 
     public static void setPrivacyAccepted(boolean flag) {
+        boolean previous = isPrivacyAccepted();
         mEditor.putBoolean(PRIVACY_ACCEPTED_KEY, flag).apply();
+        logConfigChange(PRIVACY_ACCEPTED_KEY, previous, flag);
     }
 
     public static boolean isDisclaimerAccepted() {
@@ -120,7 +128,9 @@ public class SettingManager {
     }
 
     public static void setDisclaimerAccepted(boolean flag) {
+        boolean previous = isDisclaimerAccepted();
         mEditor.putBoolean(DISCLAIMER_ACCEPTED_KEY, flag).apply();
+        logConfigChange(DISCLAIMER_ACCEPTED_KEY, previous, flag);
     }
 
     public static String getLanguage() {
@@ -128,7 +138,9 @@ public class SettingManager {
     }
 
     public static void setLanguage(String lang) {
+        String previous = getLanguage();
         mEditor.putString(LANGUAGE_KEY, lang).apply();
+        logConfigChange(LANGUAGE_KEY, previous, lang);
     }
 
     public static boolean isRandomizeDelay() {
@@ -136,7 +148,9 @@ public class SettingManager {
     }
 
     public static void setRandomizeDelay(boolean flag) {
+        boolean previous = isRandomizeDelay();
         mEditor.putBoolean(SEND_DELAY_RANDOMIZATION_KEY, flag).apply();
+        logConfigChange(SEND_DELAY_RANDOMIZATION_KEY, previous, flag);
     }
 
     public static int getDarkMode() {
@@ -144,7 +158,9 @@ public class SettingManager {
     }
 
     public static void setDarkMode(int mode) {
+        int previous = getDarkMode();
         mEditor.putInt(DARK_MODE_KEY, mode).apply();
+        logConfigChange(DARK_MODE_KEY, previous, mode);
     }
 
     public static boolean isSensitiveWordFilterEnabled() {
@@ -152,7 +168,16 @@ public class SettingManager {
     }
 
     public static void setSensitiveWordFilterEnabled(boolean enabled) {
+        boolean previous = isSensitiveWordFilterEnabled();
         mEditor.putBoolean(SENSITIVE_WORD_FILTER_KEY, enabled).apply();
+        logConfigChange(SENSITIVE_WORD_FILTER_KEY, previous, enabled);
+    }
+
+    private static void logConfigChange(String key, Object previous, Object current) {
+        boolean changed = previous == null ? current != null : !previous.equals(current);
+        if (changed) {
+            Log.i(TAG, "Config changed: " + key + " = " + current + " (was " + previous + ")");
+        }
     }
 
 }

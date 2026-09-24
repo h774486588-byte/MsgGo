@@ -69,6 +69,7 @@ public class SettingFrag extends Fragment {
     private TextView mTvCache, mTvDelayValue, mTvSmsRateValue, mTvLanguage, mTvDarkModeSummary;
     private LinearLayout mCardSmsRate;
     private boolean isUpdatingUI = false;
+    private boolean isTrackingDelaySlider = false;
     private Slider mSliderDelay;
 
     @Override
@@ -128,12 +129,28 @@ public class SettingFrag extends Fragment {
             }
         });
 
-        // Auto-save: Slider Delay
+        // Preview the delay while dragging; persist only after the drag ends.
         mSliderDelay.addOnChangeListener((slider, value, fromUser) -> {
             if (fromUser) {
-                SettingManager.setDelay((int)value);
                 float seconds = value / 1000f;
                 mTvDelayValue.setText(String.format(Locale.getDefault(),"%.1fs", seconds));
+                // Keyboard and accessibility changes do not trigger touch callbacks.
+                if (!isTrackingDelaySlider) {
+                    SettingManager.setDelay((int) value);
+                }
+            }
+        });
+
+        mSliderDelay.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+            @Override
+            public void onStartTrackingTouch(@NonNull Slider slider) {
+                isTrackingDelaySlider = true;
+            }
+
+            @Override
+            public void onStopTrackingTouch(@NonNull Slider slider) {
+                isTrackingDelaySlider = false;
+                SettingManager.setDelay((int) slider.getValue());
             }
         });
 
