@@ -7,7 +7,8 @@ A lightweight bulk SMS application for the Android platform.
 ![](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=ffffff)
 ![](https://img.shields.io/github/v/release/yztz/MsgGo.svg)
 ![](https://img.shields.io/github/license/yztz/MsgGo)
-![](https://img.shields.io/github/downloads/yztz/MsgGo/total?color=green)
+![](https://img.shields.io/github/downloads/yztz/MsgGo/total?logo=github)
+![](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fgithub.com%2Fkitswas%2Ffdroid-metrics-dashboard%2Fraw%2Frefs%2Fheads%2Fmain%2Fprocessed%2Ftotal%2Ftop.yztz.msggo.json&query=%24.total_downloads&logo=fdroid&label=downloads)
 
 [中文](./README.md) | [English](./README_EN.md)
 
