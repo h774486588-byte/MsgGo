@@ -47,6 +47,7 @@ class PoiSpreadsheetParser implements SpreadsheetParser {
     private int colNum;
     private String[] titles;
     private List<Integer> titleColumns;
+    private List<Integer> sourceRowNumbers;
 
     @Override
     public boolean supports(String extension) {
@@ -96,6 +97,7 @@ class PoiSpreadsheetParser implements SpreadsheetParser {
     @Override
     public ArrayList<HashMap<String, String>> getContent() {
         ArrayList<HashMap<String, String>> list = new ArrayList<>();
+        sourceRowNumbers = new ArrayList<>();
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row == null || isRowEmpty(row)) continue;
@@ -104,8 +106,14 @@ class PoiSpreadsheetParser implements SpreadsheetParser {
                 content.put(titles[j], cellToString(row.getCell(titleColumns.get(j))));
             }
             list.add(content);
+            sourceRowNumbers.add(i + 1);
         }
         return list;
+    }
+
+    @Override
+    public List<Integer> getSourceRowNumbers() {
+        return sourceRowNumbers;
     }
 
     private boolean isRowEmpty(Row row) {

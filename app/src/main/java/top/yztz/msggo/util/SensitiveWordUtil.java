@@ -90,7 +90,7 @@ public class SensitiveWordUtil implements IWordAllow, IWordDeny, ISensitiveWordC
     @Override
     public List<String> allow() {
         return Arrays.asList(
-            "近日入职", "联系方式", "考试设备", "精美礼品", "尊敬的用户", "关注与支持"
+            "近日入职", "联系方式", "考试设备", "精美礼品", "尊敬的用户", "关注与支持", "维吾"
         );
     }
 

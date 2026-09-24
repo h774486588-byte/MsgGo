@@ -19,6 +19,7 @@ package top.yztz.msggo.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import top.yztz.msggo.exception.DataLoadFailed;
 
@@ -27,4 +28,5 @@ public interface SpreadsheetParser {
     void parse(String path) throws DataLoadFailed;
     String[] getTitles();
     ArrayList<HashMap<String, String>> getContent();
+    List<Integer> getSourceRowNumbers();
 }

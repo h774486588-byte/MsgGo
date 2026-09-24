@@ -43,6 +43,8 @@ class OdsSpreadsheetParser implements SpreadsheetParser {
     private int colNum;
     private String[] titles;
     private List<List<String>> rows; // includes header at index 0
+    private List<Integer> rowNumbers; // one-based spreadsheet row numbers, including header
+    private List<Integer> sourceRowNumbers;
 
     @Override
     public boolean supports(String extension) {
@@ -52,6 +54,7 @@ class OdsSpreadsheetParser implements SpreadsheetParser {
     @Override
     public void parse(String path) throws DataLoadFailed {
         rows = new ArrayList<>();
+        rowNumbers = new ArrayList<>();
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(path))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
@@ -95,6 +98,7 @@ class OdsSpreadsheetParser implements SpreadsheetParser {
             String officeValue = null;
             int colsRepeated = 1;
             int rowsRepeated = 1;
+            int nextRowNumber = 1;
 
             int event = parser.getEventType();
             while (event != XmlPullParser.END_DOCUMENT) {
@@ -134,9 +138,13 @@ class OdsSpreadsheetParser implements SpreadsheetParser {
                             if (last >= 0) {
                                 List<String> trimmed = new ArrayList<>(currentRow.subList(0, last + 1));
                                 int addCount = Math.min(rowsRepeated, Settings.EXCEL_ROW_COUNT_MAX + 1);
-                                for (int i = 0; i < addCount; i++) rows.add(new ArrayList<>(trimmed));
+                                for (int i = 0; i < addCount; i++) {
+                                    rows.add(new ArrayList<>(trimmed));
+                                    rowNumbers.add(nextRowNumber + i);
+                                }
                             }
                         }
+                        nextRowNumber += rowsRepeated;
                         rowsRepeated = 1;
                     } else if ("table:table-cell".equals(tag) || "table:covered-table-cell".equals(tag)) {
                         inCell = false;
@@ -166,6 +174,7 @@ class OdsSpreadsheetParser implements SpreadsheetParser {
     @Override
     public ArrayList<HashMap<String, String>> getContent() {
         ArrayList<HashMap<String, String>> list = new ArrayList<>();
+        sourceRowNumbers = new ArrayList<>();
         for (int i = 1; i < rows.size(); i++) {
             List<String> row = rows.get(i);
             HashMap<String, String> content = new HashMap<>();
@@ -173,7 +182,13 @@ class OdsSpreadsheetParser implements SpreadsheetParser {
                 content.put(titles[j], j < row.size() ? row.get(j).trim() : "");
             }
             list.add(content);
+            sourceRowNumbers.add(rowNumbers.get(i));
         }
         return list;
+    }
+
+    @Override
+    public List<Integer> getSourceRowNumbers() {
+        return sourceRowNumbers;
     }
 }

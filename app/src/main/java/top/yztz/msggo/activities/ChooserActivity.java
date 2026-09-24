@@ -51,6 +51,7 @@ import java.util.Map;
 
 import top.yztz.msggo.R;
 import top.yztz.msggo.adapters.ListAdapter;
+import top.yztz.msggo.adapters.RowNumberAdapter;
 import top.yztz.msggo.data.DataModel;
 import top.yztz.msggo.data.Message;
 import top.yztz.msggo.data.SettingManager;
@@ -66,6 +67,7 @@ import android.widget.CheckBox;
 public class ChooserActivity extends AppCompatActivity {
     private static final String TAG = "ChooserActivity";
     private RecyclerView mRv;
+    private RecyclerView rvRowNumber;
     private RecyclerView rvCheckbox;
     private Button mSend;
     private CheckBox cbSelectAll;
@@ -81,6 +83,7 @@ public class ChooserActivity extends AppCompatActivity {
         setContentView(R.layout.activity_chooser);
 
         mRv = findViewById(R.id.rv_data);
+        rvRowNumber = findViewById(R.id.rv_row_number);
         rvCheckbox = findViewById(R.id.rv_checkbox);
         mSend = findViewById(R.id.btn_send);
         cbSelectAll = findViewById(R.id.cb_select_all);
@@ -114,6 +117,10 @@ public class ChooserActivity extends AppCompatActivity {
         checkboxAdapter = new CheckboxAdapter(this, DataModel.getRowCount());
         rvCheckbox.setAdapter(checkboxAdapter);
 
+        final RecyclerView.LayoutManager rowNumberManager = new LinearLayoutManager(this);
+        rvRowNumber.setLayoutManager(rowNumberManager);
+        rvRowNumber.setAdapter(new RowNumberAdapter(DataModel.getSourceRowNumbers()));
+
         checkboxAdapter.setOnSelectionChangedListener((position, isChecked) -> updateSelectionSummary());
 
         // Synchronize scrolling
@@ -121,15 +128,14 @@ public class ChooserActivity extends AppCompatActivity {
             @Override
             public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                 if (recyclerView.getScrollState() != RecyclerView.SCROLL_STATE_IDLE) {
-                    if (recyclerView == mRv) {
-                        rvCheckbox.scrollBy(0, dy);
-                    } else if (recyclerView == rvCheckbox) {
-                        mRv.scrollBy(0, dy);
-                    }
+                    if (recyclerView != mRv) mRv.scrollBy(0, dy);
+                    if (recyclerView != rvRowNumber) rvRowNumber.scrollBy(0, dy);
+                    if (recyclerView != rvCheckbox) rvCheckbox.scrollBy(0, dy);
                 }
             }
         };
         mRv.addOnScrollListener(syncScrollListener);
+        rvRowNumber.addOnScrollListener(syncScrollListener);
         rvCheckbox.addOnScrollListener(syncScrollListener);
 
         // Select All Logic

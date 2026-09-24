@@ -207,6 +207,33 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
 
+                <!-- Fixed source spreadsheet row number column -->
+                <LinearLayout
+                    android:layout_width="@dimen/row_number_column_width"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:alpha="0.72"
+                        android:background="?attr/colorSurfaceContainer"
+                        android:gravity="center"
+                        android:text="@string/row_number_header"
+                        android:textAppearance="?attr/textAppearanceLabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rv_row_number"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:background="?android:attr/listDivider" />
+
                 <!-- Main Data Table (Scrollable) -->
                 <HorizontalScrollView
                     android:id="@+id/hsv"

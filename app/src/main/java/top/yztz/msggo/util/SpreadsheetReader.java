@@ -64,4 +64,8 @@ public class SpreadsheetReader {
     public ArrayList<HashMap<String, String>> readContent() {
         return active.getContent();
     }
+
+    public List<Integer> getSourceRowNumbers() {
+        return active.getSourceRowNumbers();
+    }
 }

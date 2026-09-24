@@ -41,6 +41,7 @@ public class DataModel implements Serializable {
     private static String signature;
     private static int subId;
     private static List<HashMap<String, String >> data = null;
+    private static List<Integer> sourceRowNumbers = null;
 
     private static boolean loaded = false;
 
@@ -57,6 +58,7 @@ public class DataModel implements Serializable {
         SpreadsheetReader reader = new SpreadsheetReader();
         reader.read(path);
         DataModel.data = reader.readContent();
+        DataModel.sourceRowNumbers = reader.getSourceRowNumbers();
         DataModel.titles = reader.getTitles();
         DataModel.path = path;
         DataModel.signature = HashUtils.toMd5(path + "+" + String.join("-", reader.getTitles()));
@@ -83,6 +85,10 @@ public class DataModel implements Serializable {
 
     public static HashMap<String, String> getRow(int index) {
         return data.get(index);
+    }
+
+    public static List<Integer> getSourceRowNumbers() {
+        return sourceRowNumbers;
     }
 
     public static String[] getTitles() {
@@ -135,9 +141,11 @@ public class DataModel implements Serializable {
         
         Set<String> seen = new HashSet<>();
         Iterator<HashMap<String, String>> iterator = data.iterator();
+        Iterator<Integer> rowNumberIterator = sourceRowNumbers.iterator();
         
         while (iterator.hasNext()) {
             HashMap<String, String> row = iterator.next();
+            rowNumberIterator.next();
             String number = row.get(numberColumn);
             // normalization might be needed? User just said "deduplicate based on number column"
             // Let's assume exact string match for now, or basic trimming.
@@ -146,6 +154,7 @@ public class DataModel implements Serializable {
 
             if (number.isEmpty() || seen.contains(number)) {
                 iterator.remove();
+                rowNumberIterator.remove();
             } else {
                 seen.add(number);
             }
@@ -156,6 +165,7 @@ public class DataModel implements Serializable {
 
     public static void clear() {
         data = null;
+        sourceRowNumbers = null;
         titles = null;
         loaded = false;
     }
