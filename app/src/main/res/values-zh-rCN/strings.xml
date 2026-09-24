@@ -118,6 +118,7 @@
     <string name="confirm_send_title">确认发送</string>
     <string name="confirm_send_msg_format">确定向已选的 %1$d 位联系人发送短信吗？\n预计产生费用：¥%2$.2f</string>
     <string name="send_now">立即发送</string>
+    <string name="send_selected_count">发送所选 %1$d 人</string>
     <string name="unknown_sim">未知 SIM 卡</string>
     <string name="sim_slot_format">卡槽 %1$d · %2$s</string>
     <string name="done">完成</string>

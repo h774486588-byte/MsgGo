@@ -124,6 +124,7 @@
     <string name="confirm_send_title">Confirm Sending</string>
     <string name="confirm_send_msg_format">Are you sure you want to send SMS to %1$d selected contacts?\nEstimated cost: $%2$.2f</string>
     <string name="send_now">Send Now</string>
+    <string name="send_selected_count">Send to %1$d selected</string>
     <string name="unknown_sim">Unknown SIM Card</string>
     <string name="sim_slot_format">Slot %1$d · %2$s</string>
     <string name="done">Done</string>

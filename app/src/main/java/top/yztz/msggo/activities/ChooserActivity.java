@@ -175,7 +175,7 @@ public class ChooserActivity extends AppCompatActivity {
     }
 
     private void updateSelectionSummary() {
-        if (checkboxAdapter == null || tvSelectionCount == null || tvEstimatedCost == null) return;
+        if (checkboxAdapter == null || tvSelectionCount == null || tvEstimatedCost == null || mSend == null) return;
         
         int total = DataModel.loaded() ? DataModel.getRowCount() : 0;
         int selected = 0;
@@ -190,6 +190,8 @@ public class ChooserActivity extends AppCompatActivity {
         double cost = selected * rate;
         tvSelectionCount.setText(String.format(Locale.getDefault(), "%d / %d", selected, total));
         tvEstimatedCost.setText(String.format(Locale.getDefault(), "%.2f", cost));
+        mSend.setText(getString(R.string.send_selected_count, selected));
+        mSend.setEnabled(selected > 0);
     }
     
     private void setupInfoCard() {
