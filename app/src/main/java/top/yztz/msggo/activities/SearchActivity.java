@@ -26,7 +26,6 @@ import top.yztz.msggo.R;
 import top.yztz.msggo.data.DataModel;
 import top.yztz.msggo.data.Message;
 import top.yztz.msggo.util.PhoneNumberUtil;
-import top.yztz.msggo.util.TextParser;
 import top.yztz.msggo.services.SMSSender;
 
 public class SearchActivity extends AppCompatActivity {
@@ -114,7 +113,7 @@ public class SearchActivity extends AppCompatActivity {
         phone.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium);
 
         TextView message = new TextView(this);
-        String message = DataModel.getMessageForRow((java.util.HashMap<String, String>) row);
+        String content = DataModel.getMessageForRow((java.util.HashMap<String, String>) row);
         message.setText(content);
         message.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
         message.setPadding(0, 8, 0, 8);
@@ -155,7 +154,7 @@ public class SearchActivity extends AppCompatActivity {
         boolean submitted;
         try {
             submitted = SMSSender.sendMessage(
-                    this, content, phone, DataModel.getSubId(), code,
+                    this, message, phone, DataModel.getSubId(), code,
                     "individual-" + code);
         } catch (SecurityException e) {
             submitted = false;
