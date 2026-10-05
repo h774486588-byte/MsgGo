@@ -239,6 +239,7 @@ public class ChooserActivity extends AppCompatActivity {
         tvEstimatedCost.setText(String.format(Locale.getDefault(), "%.2f", cost));
         mSend.setText(getString(R.string.send_selected_count, selected));
         mSend.setEnabled(selected > 0);
+        if (mWhatsAppQueue != null) mWhatsAppQueue.setEnabled(selected > 0);
     }
     
     private void setupInfoCard() {
