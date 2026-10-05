@@ -191,4 +191,17 @@
     <string name="paused">Paused</string>
     <string name="invalid_numbers_title">Invalid phone numbers</string>
     <string name="invalid_numbers_msg">%1$d selected rows contain invalid phone numbers. Please correct them before sending.</string>
+    <string name="whatsapp_queue_title">قائمة إرسال واتساب</string>
+    <string name="whatsapp_queue_progress">الرسالة %1$d من %2$d</string>
+    <string name="whatsapp_open_send">فتح واتساب وإرسال الرسالة</string>
+    <string name="whatsapp_next">تم الإرسال — التالي</string>
+    <string name="whatsapp_skip">تخطي</string>
+    <string name="whatsapp_queue_done">اكتملت القائمة</string>
+    <string name="whatsapp_queue_finished">تمت معالجة جميع الرسائل في الطابور.</string>
+    <string name="whatsapp_not_installed_title">واتساب غير مثبت</string>
+    <string name="whatsapp_not_installed_msg">تعذر فتح واتساب على هذا الجهاز.</string>
+    <string name="whatsapp_queue_exit_title">الخروج من الطابور؟</string>
+    <string name="whatsapp_queue_exit_msg">سيتم إيقاف قائمة واتساب الحالية.</string>
+    <string name="recipient">المستلم</string>
+    <string name="message">الرسالة</string>
 </resources>
