@@ -57,7 +57,8 @@ import top.yztz.msggo.data.Message;
 import top.yztz.msggo.data.SettingManager;
 import top.yztz.msggo.services.SMSSender;
 
-import top.yztz.msggo.util.FileUtil;\nimport top.yztz.msggo.util.PhoneNumberUtil;
+import top.yztz.msggo.util.FileUtil;
+import top.yztz.msggo.util.PhoneNumberUtil;
 import top.yztz.msggo.util.SensitiveWordUtil;
 import top.yztz.msggo.util.TextParser;
 import top.yztz.msggo.util.ToastUtil;
