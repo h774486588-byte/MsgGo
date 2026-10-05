@@ -91,6 +91,7 @@
         </provider>
 
 
+            <activity android:name=".activities.WhatsAppQueueActivity" />
     </application>
 
 </manifest>
