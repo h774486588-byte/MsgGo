@@ -71,6 +71,7 @@ public class ChooserActivity extends AppCompatActivity {
     private RecyclerView rvRowNumber;
     private RecyclerView rvCheckbox;
     private Button mSend;
+    private Button mWhatsAppQueue;
     private CheckBox cbSelectAll;
     private MaterialToolbar topAppBar;
     private TextView tvFileName, tvSimInfo, tvSelectionCount, tvEstimatedCost;
@@ -87,6 +88,7 @@ public class ChooserActivity extends AppCompatActivity {
         rvRowNumber = findViewById(R.id.rv_row_number);
         rvCheckbox = findViewById(R.id.rv_checkbox);
         mSend = findViewById(R.id.btn_send);
+        mWhatsAppQueue = findViewById(R.id.btn_whatsapp_queue);
         cbSelectAll = findViewById(R.id.cb_select_all);
         topAppBar = findViewById(R.id.topAppBar);
         tvFileName = findViewById(R.id.tv_file_name);
@@ -143,6 +145,22 @@ public class ChooserActivity extends AppCompatActivity {
         cbSelectAll.setOnCheckedChangeListener((buttonView, isChecked) -> {
             checkboxAdapter.setAllCheckBoxChosen(isChecked);
             updateSelectionSummary();
+        });
+
+        mWhatsAppQueue.setOnClickListener(v -> {
+            ArrayList<Integer> itemIndices = new ArrayList<>();
+            SparseBooleanArray checkedMap = checkboxAdapter.getCheckedMap();
+            int itemCount = mRv.getAdapter() != null ? mRv.getAdapter().getItemCount() : 0;
+            for (int i = 0; i < itemCount; i++) {
+                if (checkedMap.get(i)) itemIndices.add(i);
+            }
+            if (itemIndices.isEmpty()) {
+                ToastUtil.show(ChooserActivity.this, getString(R.string.no_recipients_selected));
+                return;
+            }
+            Intent intent = new Intent(this, WhatsAppQueueActivity.class);
+            intent.putIntegerArrayListExtra("indices", itemIndices);
+            startActivity(intent);
         });
 
         mSend.setOnClickListener(v -> {
