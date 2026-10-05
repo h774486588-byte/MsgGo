@@ -104,7 +104,7 @@ public class ChooserActivity extends AppCompatActivity {
         adapter.setOnItemClickListener(position -> {
             String template = DataModel.getTemplate();
             Map<String, String> dataMap = DataModel.getRow(position);
-            String content = TextParser.parse(template, dataMap);
+            String content = DataModel.getMessageForRow((java.util.HashMap<String, String>) dataMap);
             String recipient = PhoneNumberUtil.normalizeMapValue(dataMap, DataModel.getNumberColumn());
 
             new MaterialAlertDialogBuilder(this)
