@@ -114,7 +114,7 @@ public class SearchActivity extends AppCompatActivity {
         phone.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_TitleMedium);
 
         TextView message = new TextView(this);
-        String content = TextParser.parse(DataModel.getTemplate(), row);
+        String message = DataModel.getMessageForRow((java.util.HashMap<String, String>) row);
         message.setText(content);
         message.setTextAppearance(com.google.android.material.R.style.TextAppearance_Material3_BodyMedium);
         message.setPadding(0, 8, 0, 8);
@@ -144,7 +144,7 @@ public class SearchActivity extends AppCompatActivity {
 
     private void sendSms(Map<String, String> row) {
         String phone = PhoneNumberUtil.fromSpreadsheet(row.get(DataModel.getNumberColumn()));
-        String content = TextParser.parse(DataModel.getTemplate(), row);
+        String message = DataModel.getMessageForRow((java.util.HashMap<String, String>) row);
 
         if (!PhoneNumberUtil.isPlausible(phone)) {
             Toast.makeText(this, R.string.invalid_numbers_title, Toast.LENGTH_SHORT).show();
