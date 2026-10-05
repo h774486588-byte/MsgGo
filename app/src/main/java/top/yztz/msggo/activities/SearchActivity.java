@@ -172,19 +172,28 @@ public class SearchActivity extends AppCompatActivity {
             return;
         }
 
-        Uri uri = Uri.parse("https://wa.me/" + waNumber + "?text=" + Uri.encode(message));
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+        Uri deepLink = Uri.parse("whatsapp://send?phone=" + waNumber + "&text=" + Uri.encode(message));
+        Intent intent = new Intent(Intent.ACTION_VIEW, deepLink);
         try {
             intent.setPackage("com.whatsapp");
             startActivity(intent);
-        } catch (ActivityNotFoundException first) {
-            try {
-                intent.setPackage("com.whatsapp.w4b");
-                startActivity(intent);
-            } catch (ActivityNotFoundException second) {
-                intent.setPackage(null);
-                startActivity(intent);
-            }
+            return;
+        } catch (ActivityNotFoundException ignored) {
+        }
+
+        try {
+            intent.setPackage("com.whatsapp.w4b");
+            startActivity(intent);
+            return;
+        } catch (ActivityNotFoundException ignored) {
+        }
+
+        Uri webUri = Uri.parse("https://wa.me/" + waNumber + "?text=" + Uri.encode(message));
+        Intent webIntent = new Intent(Intent.ACTION_VIEW, webUri);
+        try {
+            startActivity(webIntent);
+        } catch (ActivityNotFoundException ignored) {
+            Toast.makeText(this, R.string.whatsapp_not_installed_msg, Toast.LENGTH_SHORT).show();
         }
     }
 
