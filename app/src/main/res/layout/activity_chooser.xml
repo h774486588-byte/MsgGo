@@ -95,16 +95,6 @@
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 android:maxLines="1"
                                 android:ellipsize="end"/>
-                            <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_whatsapp_queue"
-        style="@style/Widget.Material3.Button.OutlinedButton"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp"
-        android:text="@string/whatsapp_queue_title" />
-
 </LinearLayout>
 
                         <!-- Divider/Space -->
@@ -332,6 +322,18 @@
         android:text="@string/tip_sms_preview"
         android:textAppearance="?attr/textAppearanceBodySmall"
         android:textColor="?attr/colorOnSurfaceVariant" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_whatsapp_queue"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="4dp"
+        android:text="@string/send_selected_whatsapp"
+        android:textStyle="bold" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_send"
