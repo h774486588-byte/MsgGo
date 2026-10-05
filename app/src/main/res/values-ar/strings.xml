@@ -164,4 +164,6 @@
     <string name="sent">تم الإرسال</string>
     <string name="failed">فشل</string>
     <string name="paused">متوقف مؤقتًا</string>
+    <string name="invalid_numbers_title">أرقام هواتف غير صالحة</string>
+    <string name="invalid_numbers_msg">يوجد %1$d من الصفوف المحددة تحتوي على أرقام هواتف غير صالحة. يرجى تصحيحها قبل الإرسال.</string>
 </resources>
