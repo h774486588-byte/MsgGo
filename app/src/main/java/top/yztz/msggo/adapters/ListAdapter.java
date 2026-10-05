@@ -32,6 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import top.yztz.msggo.R;
+import top.yztz.msggo.data.DataModel;
+import top.yztz.msggo.util.PhoneNumberUtil;
 
 public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ListHolder> {
     private final Context context;
@@ -113,6 +115,11 @@ class DataAdapter extends RecyclerView.Adapter<DataAdapter.DataHolder> {
     public void onBindViewHolder(@NonNull DataHolder holder, int position) {
         String key = titles[position];
         String value = map.get(key);
+        if (key != null && key.equals(DataModel.getNumberColumn())) {
+            // Display phone numbers in their full decimal form (never scientific notation)
+            // while keeping the original spreadsheet row unchanged.
+            value = PhoneNumberUtil.formatForDisplay(value);
+        }
         holder.mTvData.setText(value != null ? value : "");
     }
 
