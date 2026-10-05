@@ -57,7 +57,7 @@ import top.yztz.msggo.data.Message;
 import top.yztz.msggo.data.SettingManager;
 import top.yztz.msggo.services.SMSSender;
 
-import top.yztz.msggo.util.FileUtil;
+import top.yztz.msggo.util.FileUtil;\nimport top.yztz.msggo.util.PhoneNumberUtil;
 import top.yztz.msggo.util.SensitiveWordUtil;
 import top.yztz.msggo.util.TextParser;
 import top.yztz.msggo.util.ToastUtil;
@@ -102,7 +102,7 @@ public class ChooserActivity extends AppCompatActivity {
             String template = DataModel.getTemplate();
             Map<String, String> dataMap = DataModel.getRow(position);
             String content = TextParser.parse(template, dataMap);
-            String recipient = dataMap.get(DataModel.getNumberColumn());
+            String recipient = PhoneNumberUtil.normalizeMapValue(dataMap, DataModel.getNumberColumn());
 
             new MaterialAlertDialogBuilder(this)
                     .setTitle(getString(R.string.preview_recipient_title,
@@ -156,6 +156,22 @@ public class ChooserActivity extends AppCompatActivity {
 
             if (itemIndices.isEmpty()) {
                 ToastUtil.show(ChooserActivity.this, getString(R.string.no_recipients_selected));
+                return;
+            }
+
+            int invalidCount = 0;
+            for (int index : itemIndices) {
+                Map<String, String> row = DataModel.getRow(index);
+                if (!PhoneNumberUtil.isPlausible(row.get(DataModel.getNumberColumn()))) {
+                    invalidCount++;
+                }
+            }
+            if (invalidCount > 0) {
+                new MaterialAlertDialogBuilder(this)
+                        .setTitle(getString(R.string.invalid_numbers_title))
+                        .setMessage(getString(R.string.invalid_numbers_msg, invalidCount))
+                        .setPositiveButton(getString(R.string.ok), null)
+                        .show();
                 return;
             }
 
@@ -277,7 +293,7 @@ public class ChooserActivity extends AppCompatActivity {
         for (int i : itemIndices) {
             Map<String, String> tmp = DataModel.getRow(i);
             String content = TextParser.parse(rawContent, tmp);
-            String phoneNumber = tmp.get(numberCol);
+            String phoneNumber = PhoneNumberUtil.fromSpreadsheet(tmp.get(numberCol));
             messages.add(new Message(phoneNumber, content));
         }
 
