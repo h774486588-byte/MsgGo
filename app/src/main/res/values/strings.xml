@@ -214,4 +214,5 @@
     <string name="send_whatsapp_individual">Send WhatsApp</string>
     <string name="individual_sms_submitted">Message submitted to the SMS service</string>
     <string name="individual_sms_failed">Could not send the message</string>
+    <string name="send_selected_whatsapp">Send Selected via WhatsApp</string>
 </resources>
