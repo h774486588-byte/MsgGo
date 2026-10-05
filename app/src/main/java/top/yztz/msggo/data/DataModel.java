@@ -51,17 +51,24 @@ public class DataModel implements Serializable {
 
     private static String findLikelyNumberColumn() {
         if (titles == null) return "";
+
+        // Prefer explicit recipient/phone headers. This prevents columns such as
+        // "رقم الحركة" (movement number) from being mistaken for a phone column.
         for (String title : titles) {
-            String normalized = title == null ? "" : title.trim().toLowerCase(Locale.ROOT);
-            if (normalized.matches(".*(phone|mobile|telephone|tel|number|recipient|receiver|sms|contact|هاتف|جوال|موبايل|رقم|المستلم|المستقبل|الهاتف|الجوال|الموبايل|رقم الهاتف|رقم الجوال).*")) {
+            String n = normalizeHeader(title);
+            if (n.matches(".*(recipient|receiver|phone|mobile|telephone|tel|sms|contact|المستلم|المستقبل|الهاتف|رقم الهاتف|الجوال|رقم الجوال|الموبايل|رقم الموبايل).*")) {
                 return title;
             }
         }
 
-        int bestCount = -1;
+        int bestCount = 0;
         String bestTitle = "";
         if (data != null) {
             for (String title : titles) {
+                String n = normalizeHeader(title);
+                if (n.matches(".*(movement|transaction|user|device|result|رقم الحركة|الحركة|رقم الحركة|المستخدم|الجهاز|النتيجة).*")) {
+                    continue;
+                }
                 int count = 0;
                 for (HashMap<String, String> row : data) {
                     if (PhoneNumberUtil.isPlausible(row.get(title))) count++;
@@ -72,7 +79,14 @@ public class DataModel implements Serializable {
                 }
             }
         }
-        return bestCount > 0 ? bestTitle : "";
+        return bestTitle;
+    }
+
+    private static String normalizeHeader(String title) {
+        if (title == null) return "";
+        return title.trim()
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[\\s_\\-]+", " ");
     }
 
     public static void saveAsHistory(Context context) {
