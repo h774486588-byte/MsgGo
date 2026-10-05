@@ -190,4 +190,5 @@
     <string name="send_whatsapp_individual">إرسال واتساب</string>
     <string name="individual_sms_submitted">تم تسليم الرسالة إلى خدمة SMS</string>
     <string name="individual_sms_failed">تعذر إرسال الرسالة</string>
+    <string name="send_selected_whatsapp">إرسال المحدد عبر واتساب</string>
 </resources>
