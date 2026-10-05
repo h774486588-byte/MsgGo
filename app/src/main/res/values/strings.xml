@@ -204,4 +204,14 @@
     <string name="whatsapp_queue_exit_msg">سيتم إيقاف قائمة واتساب الحالية.</string>
     <string name="recipient">المستلم</string>
     <string name="message">الرسالة</string>
+    <string name="search_and_send">Search &amp; Send Individually</string>
+    <string name="search_hint">Search by number, name, or message</string>
+    <string name="search_enter_term">Enter a word or number to search</string>
+    <string name="search_results_count">Search results: %1$d</string>
+    <string name="search_no_results">No matching results</string>
+    <string name="search_recipient_format">Recipient: %1$s</string>
+    <string name="send_sms_individual">Send SMS</string>
+    <string name="send_whatsapp_individual">Send WhatsApp</string>
+    <string name="individual_sms_submitted">Message submitted to the SMS service</string>
+    <string name="individual_sms_failed">Could not send the message</string>
 </resources>
