@@ -207,6 +207,13 @@ public class ChooserActivity extends AppCompatActivity {
 
 
         topAppBar.setNavigationOnClickListener(v -> finish());
+        topAppBar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_search_send) {
+                startActivity(new Intent(this, SearchActivity.class));
+                return true;
+            }
+            return false;
+        });
 //        setupNumberColumnSelection();
         setupInfoCard();
         setupTableHeader();
