@@ -179,4 +179,15 @@
     <string name="whatsapp_queue_exit_msg">سيتم إيقاف قائمة واتساب الحالية.</string>
     <string name="recipient">المستلم</string>
     <string name="message">الرسالة</string>
+
+    <string name="search_and_send">بحث وإرسال فردي</string>
+    <string name="search_hint">ابحث بالرقم أو الاسم أو نص الرسالة</string>
+    <string name="search_enter_term">اكتب كلمة أو رقمًا للبحث</string>
+    <string name="search_results_count">نتائج البحث: %1$d</string>
+    <string name="search_no_results">لا توجد نتائج مطابقة</string>
+    <string name="search_recipient_format">المستلم: %1$s</string>
+    <string name="send_sms_individual">إرسال SMS</string>
+    <string name="send_whatsapp_individual">إرسال واتساب</string>
+    <string name="individual_sms_submitted">تم تسليم الرسالة إلى خدمة SMS</string>
+    <string name="individual_sms_failed">تعذر إرسال الرسالة</string>
 </resources>
