@@ -71,7 +71,7 @@ public class WhatsAppQueueActivity extends AppCompatActivity {
 
         Map<String, String> row = DataModel.getRow(indices.get(position));
         String phone = PhoneNumberUtil.fromSpreadsheet(row.get(DataModel.getNumberColumn()));
-        String message = TextParser.parse(DataModel.getTemplate(), row);
+        String message = DataModel.getMessageForRow((java.util.HashMap<String, String>) row);
 
         tvProgress.setText(getString(R.string.whatsapp_queue_progress, position + 1, indices.size()));
         tvRecipient.setText(phone);
@@ -87,7 +87,7 @@ public class WhatsAppQueueActivity extends AppCompatActivity {
         Map<String, String> row = DataModel.getRow(indices.get(position));
         String phone = PhoneNumberUtil.fromSpreadsheet(row.get(DataModel.getNumberColumn()));
         String waNumber = toWhatsAppNumber(phone);
-        String message = TextParser.parse(DataModel.getTemplate(), row);
+        String message = DataModel.getMessageForRow((java.util.HashMap<String, String>) row);
 
         if (waNumber.isEmpty()) {
             ToastUtil.show(this, getString(R.string.invalid_numbers_title));
