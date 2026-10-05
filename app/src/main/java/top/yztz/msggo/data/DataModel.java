@@ -121,7 +121,7 @@ public class DataModel implements Serializable {
             rowNumberIterator.next();
             String number = getNormalizedPhone(row);
 
-            if (number.isEmpty() || !PhoneNumberUtil.isPlausible(number) || seen.contains(number)) {
+            if (number.isEmpty() || seen.contains(number)) {
                 iterator.remove();
                 rowNumberIterator.remove();
             } else {
