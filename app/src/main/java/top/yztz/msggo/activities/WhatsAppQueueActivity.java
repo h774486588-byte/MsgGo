@@ -94,12 +94,30 @@ public class WhatsAppQueueActivity extends AppCompatActivity {
             return;
         }
 
-        Uri uri = Uri.parse("https://wa.me/" + waNumber + "?text=" + Uri.encode(message));
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        intent.setPackage("com.whatsapp");
+        // Prefer the WhatsApp deep link so Android opens the installed app
+        // directly. Support both WhatsApp Messenger and WhatsApp Business.
+        Uri deepLink = Uri.parse("whatsapp://send?phone=" + waNumber + "&text=" + Uri.encode(message));
+        Intent intent = new Intent(Intent.ACTION_VIEW, deepLink);
 
         try {
+            intent.setPackage("com.whatsapp");
             startActivity(intent);
+            return;
+        } catch (ActivityNotFoundException ignored) {
+        }
+
+        try {
+            intent.setPackage("com.whatsapp.w4b");
+            startActivity(intent);
+            return;
+        } catch (ActivityNotFoundException ignored) {
+        }
+
+        // Some Android/WhatsApp builds expose only the web URL handler.
+        Uri webUri = Uri.parse("https://wa.me/" + waNumber + "?text=" + Uri.encode(message));
+        Intent webIntent = new Intent(Intent.ACTION_VIEW, webUri);
+        try {
+            startActivity(webIntent);
         } catch (ActivityNotFoundException e) {
             new MaterialAlertDialogBuilder(this)
                     .setTitle(R.string.whatsapp_not_installed_title)
