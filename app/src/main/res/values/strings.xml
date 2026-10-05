@@ -189,4 +189,6 @@
     <string name="sent">Sent</string>
     <string name="failed">Failed</string>
     <string name="paused">Paused</string>
+    <string name="invalid_numbers_title">Invalid phone numbers</string>
+    <string name="invalid_numbers_msg">%1$d selected rows contain invalid phone numbers. Please correct them before sending.</string>
 </resources>
