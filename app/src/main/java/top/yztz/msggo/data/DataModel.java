@@ -106,6 +106,33 @@ public class DataModel implements Serializable {
     public static String getPath() { return path; }
     public static long getTimestamp() { return timestamp; }
     public static String getTemplate() { return template; }
+
+    /**
+     * Returns the message for a spreadsheet row. If the user has not entered a
+     * global template, use the row's own "الرسالة" column so imported messages
+     * are previewed and sent exactly as provided in Excel.
+     */
+    public static String getMessageForRow(HashMap<String, String> row) {
+        if (row == null) return "";
+        String currentTemplate = template == null ? "" : template.trim();
+        if (!currentTemplate.isEmpty()) {
+            return TextParser.parse(currentTemplate, row);
+        }
+        String message = row.get(findMessageColumn());
+        return message == null ? "" : message;
+    }
+
+    private static String findMessageColumn() {
+        if (titles == null) return "";
+        for (String title : titles) {
+            String n = normalizeHeader(title);
+            if ("الرسالة".equals(n) || "message".equals(n) || "sms".equals(n)
+                    || "نص الرسالة".equals(n) || "محتوى الرسالة".equals(n)) {
+                return title;
+            }
+        }
+        return "";
+    }
     public static void setTemplate(String template) { DataModel.template = template; }
     public static String getNumberColumn() { return numberColumn; }
     public static void setNumberColumn(String numberColumn) { DataModel.numberColumn = numberColumn; }
@@ -138,7 +165,7 @@ public class DataModel implements Serializable {
             HashMap<String, String> row = iterator.next();
             rowNumberIterator.next();
             String number = getNormalizedPhone(row);
-            String message = TextParser.parse(template == null ? "" : template, row);
+            String message = getMessageForRow(row);
             String key = number + "\u0000" + message;
 
             // Deduplicate only an identical recipient + identical final message.
