@@ -15,6 +15,7 @@ import top.yztz.msggo.services.SMSSender;
 import top.yztz.msggo.util.HashUtils;
 import top.yztz.msggo.util.PhoneNumberUtil;
 import top.yztz.msggo.util.SpreadsheetReader;
+import top.yztz.msggo.util.TextParser;
 
 public class DataModel implements Serializable {
     private static String[] titles = null;
@@ -52,11 +53,14 @@ public class DataModel implements Serializable {
     private static String findLikelyNumberColumn() {
         if (titles == null) return "";
 
-        // Prefer explicit recipient/phone headers. This prevents columns such as
-        // "رقم الحركة" (movement number) from being mistaken for a phone column.
+        // Prefer the exact recipient column requested by the WASEEM workflow.
+        // This prevents columns such as "رقم الحركة" from ever being selected.
         for (String title : titles) {
             String n = normalizeHeader(title);
-            if (n.matches(".*(recipient|receiver|phone|mobile|telephone|tel|sms|contact|المستلم|المستقبل|الهاتف|رقم الهاتف|الجوال|رقم الجوال|الموبايل|رقم الموبايل).*")) {
+            if ("المستلم".equals(n) || "recipient".equals(n) || "receiver".equals(n)
+                    || "phone".equals(n) || "mobile".equals(n)
+                    || "رقم الهاتف".equals(n) || "رقم الجوال".equals(n)
+                    || "الهاتف".equals(n) || "الجوال".equals(n)) {
                 return title;
             }
         }
@@ -134,12 +138,16 @@ public class DataModel implements Serializable {
             HashMap<String, String> row = iterator.next();
             rowNumberIterator.next();
             String number = getNormalizedPhone(row);
+            String message = TextParser.parse(template == null ? "" : template, row);
+            String key = number + "\u0000" + message;
 
-            if (number.isEmpty() || seen.contains(number)) {
+            // Deduplicate only an identical recipient + identical final message.
+            // The same recipient may legitimately appear more than once with different text.
+            if (number.isEmpty() || seen.contains(key)) {
                 iterator.remove();
                 rowNumberIterator.remove();
             } else {
-                seen.add(number);
+                seen.add(key);
             }
         }
         return originalCount - data.size();
