@@ -16,6 +16,11 @@ public class PhoneNumberUtilTest {
         assertEquals("733222087", PhoneNumberUtil.fromSpreadsheet("7.33222087E8"));
     }
 
+    @Test public void displaysScientificExcelNumbersAsFullDigits() {
+        assertEquals("733222087", PhoneNumberUtil.formatForDisplay("7.33222087E8"));
+        assertEquals("733222087", PhoneNumberUtil.formatForDisplay("733222087.0"));
+    }
+
     @Test public void removesDisplaySeparatorsButKeepsCountryPrefix() {
         assertEquals("+967733222087", PhoneNumberUtil.fromSpreadsheet("+967 733-222-087"));
     }
