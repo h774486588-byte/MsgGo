@@ -12,6 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -169,6 +170,7 @@ public class DataModel implements Serializable {
         if (!loaded) return 0;
 
         int before = data == null ? 0 : data.size();
+        filterToToday();
         deduplicate();
 
         if (data != null && sourceRowNumbers != null) {
@@ -190,6 +192,31 @@ public class DataModel implements Serializable {
 
         sortByQueueTime();
         return before - (data == null ? 0 : data.size());
+    }
+
+    private static void filterToToday() {
+        if (data == null || sourceRowNumbers == null) return;
+        String timeColumn = findTimeColumn();
+        Iterator<HashMap<String, String>> iterator = data.iterator();
+        Iterator<Integer> rowIterator = sourceRowNumbers.iterator();
+        while (iterator.hasNext()) {
+            HashMap<String, String> row = iterator.next();
+            rowIterator.next();
+            if (!isTodayRow(row, timeColumn)) {
+                iterator.remove();
+                rowIterator.remove();
+            }
+        }
+    }
+
+    public static boolean isTodayRow(HashMap<String, String> row) {
+        return isTodayRow(row, findTimeColumn());
+    }
+
+    private static boolean isTodayRow(HashMap<String, String> row, String timeColumn) {
+        if (row == null || timeColumn == null || timeColumn.isEmpty()) return false;
+        LocalDateTime parsed = parseQueueDateTime(row.get(timeColumn));
+        return parsed != null && parsed.toLocalDate().equals(LocalDate.now());
     }
 
     private static void sortByQueueTime() {
@@ -235,32 +262,27 @@ public class DataModel implements Serializable {
         return "";
     }
 
-    private static long parseQueueTime(String value) {
-        if (value == null || value.trim().isEmpty()) return Long.MAX_VALUE;
+    private static LocalDateTime parseQueueDateTime(String value) {
+        if (value == null || value.trim().isEmpty()) return null;
         String v = value.trim();
-
         String[] patterns = {
-                "H:mm M/d/yy",
-                "H:mm:ss M/d/yy",
-                "M/d/yy H:mm",
-                "M/d/yy H:mm:ss",
-                "H:mm M/d/yyyy",
-                "H:mm:ss M/d/yyyy",
-                "M/d/yyyy H:mm",
-                "M/d/yyyy H:mm:ss"
+                "H:mm M/d/yy", "H:mm:ss M/d/yy",
+                "M/d/yy H:mm", "M/d/yy H:mm:ss",
+                "H:mm M/d/yyyy", "H:mm:ss M/d/yyyy",
+                "M/d/yyyy H:mm", "M/d/yyyy H:mm:ss"
         };
-
         for (String pattern : patterns) {
             try {
-                return LocalDateTime.parse(v, DateTimeFormatter.ofPattern(pattern, Locale.US))
-                        .atZone(java.time.ZoneId.systemDefault())
-                        .toInstant().toEpochMilli();
-            } catch (DateTimeParseException ignored) {
-            }
+                return LocalDateTime.parse(v, DateTimeFormatter.ofPattern(pattern, Locale.US));
+            } catch (DateTimeParseException ignored) {}
         }
+        return null;
+    }
 
-        // Keep unsupported/blank values at the end without breaking the queue.
-        return Long.MAX_VALUE;
+    private static long parseQueueTime(String value) {
+        LocalDateTime parsed = parseQueueDateTime(value);
+        if (parsed == null) return Long.MAX_VALUE;
+        return parsed.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
     public static int deduplicate() {
