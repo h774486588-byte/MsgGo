@@ -24,6 +24,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.DateUtil;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -60,7 +61,8 @@ class PoiSpreadsheetParser implements SpreadsheetParser {
             Workbook wb = path.endsWith(".xls")
                     ? new HSSFWorkbook(new POIFSFileSystem(is))
                     : new XSSFWorkbook(is);
-            sheet = wb.getSheetAt(0);
+            Sheet preferred = wb.getSheet("البيانات");
+            sheet = preferred != null ? preferred : wb.getSheetAt(0);
             Row firstRow = sheet.getRow(0);
             if (firstRow == null) throw new DataLoadFailed(R.string.error_no_header);
             colNum = firstRow.getPhysicalNumberOfCells();
@@ -125,6 +127,13 @@ class PoiSpreadsheetParser implements SpreadsheetParser {
 
     private static String cellToString(Cell cell) {
         if (cell == null) return "";
+        try {
+            if (DateUtil.isCellDateFormatted(cell)) {
+                java.time.LocalDateTime dt = cell.getLocalDateTimeCellValue();
+                return dt.format(java.time.format.DateTimeFormatter.ofPattern("H:mm:ss M/d/yyyy", java.util.Locale.US));
+            }
+        } catch (Exception ignored) {
+        }
         return DATA_FORMATTER.formatCellValue(cell).trim();
     }
 }
