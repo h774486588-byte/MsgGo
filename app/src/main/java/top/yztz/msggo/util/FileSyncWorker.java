@@ -52,7 +52,8 @@ public class FileSyncWorker extends Worker {
             // Validate/read the updated spreadsheet before announcing it.
             SpreadsheetReader reader = new SpreadsheetReader();
             reader.read(target.getAbsolutePath());
-            int count = reader.readContent() == null ? 0 : reader.readContent().size();
+            java.util.List<java.util.HashMap<String, String>> rows = reader.readContent();
+            int count = rows == null ? 0 : rows.size();
 
             context.getSharedPreferences(FileSyncManager.PREFS, Context.MODE_PRIVATE)
                     .edit()
