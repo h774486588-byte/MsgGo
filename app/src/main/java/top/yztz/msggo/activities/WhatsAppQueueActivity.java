@@ -19,6 +19,7 @@ import java.util.Map;
 import top.yztz.msggo.R;
 import top.yztz.msggo.data.DataModel;
 import top.yztz.msggo.util.PhoneNumberUtil;
+import top.yztz.msggo.util.SentMessageStore;
 import top.yztz.msggo.util.TextParser;
 import top.yztz.msggo.util.ToastUtil;
 
@@ -53,7 +54,7 @@ public class WhatsAppQueueActivity extends AppCompatActivity {
         }
 
         btnOpen.setOnClickListener(v -> openCurrent());
-        btnNext.setOnClickListener(v -> next());
+        btnNext.setOnClickListener(v -> markCurrentSentAndNext());
         btnSkip.setOnClickListener(v -> next());
         showCurrent();
     }
@@ -134,6 +135,16 @@ public class WhatsAppQueueActivity extends AppCompatActivity {
         if (value.matches("7\\d{8}")) return "967" + value;
         if (value.matches("9677\\d{8}")) return value;
         return value.matches("\\d{7,15}") ? value : "";
+    }
+
+    private void markCurrentSentAndNext() {
+        if (position >= indices.size()) return;
+        Map<String, String> row = DataModel.getRow(indices.get(position));
+        String phone = PhoneNumberUtil.fromSpreadsheet(row.get(DataModel.getNumberColumn()));
+        String message = DataModel.getMessageForRow((java.util.HashMap<String, String>) row);
+        String scope = SentMessageStore.scopeKey(this, DataModel.getPath());
+        SentMessageStore.markSent(this, scope, phone, message);
+        next();
     }
 
     private void next() {
