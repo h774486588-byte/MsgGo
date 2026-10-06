@@ -191,4 +191,7 @@
     <string name="individual_sms_submitted">تم تسليم الرسالة إلى خدمة SMS</string>
     <string name="individual_sms_failed">تعذر إرسال الرسالة</string>
     <string name="send_selected_whatsapp">إرسال المحدد عبر واتساب</string>
+    <string name="sync_ready_title">تم تحديث الملف وتجهيز الرسائل</string>
+    <string name="sync_ready_count">تم تجهيز %1$d رسالة</string>
+    <string name="sync_ready_detail">الملف %1$s تم تحديثه. تم تجهيز %2$d رسالة جديدة للمعاينة والإرسال.</string>
 </resources>
