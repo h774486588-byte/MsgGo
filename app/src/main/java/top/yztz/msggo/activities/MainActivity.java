@@ -457,6 +457,7 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
                     .setTitle(getString(R.string.select_number_column_dialog_title))
                     .setSingleChoiceItems(titles, checkedItem, (dialog, which) -> {
                         DataModel.setNumberColumn(titles[which]);
+                        DataModel.prepareQueue(MainActivity.this);
                         DataModel.saveAsHistory(MainActivity.this);
                         Fragment fragment = getCurrentFragment();
                         if (fragment instanceof HomeFrag) {
