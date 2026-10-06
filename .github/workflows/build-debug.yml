@@ -25,7 +25,27 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        id: build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          ./gradlew assembleDebug --stacktrace --console=plain 2>&1 | tee gradle-build.log
+          echo ${PIPESTATUS[0]} > gradle-exit-code.txt
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: WASEEM-MESSAGE-SENDER-PRO-build-log
+          path: |
+            gradle-build.log
+            gradle-exit-code.txt
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Fail if build failed
+        if: steps.build.outcome == 'failure'
+        run: exit 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
