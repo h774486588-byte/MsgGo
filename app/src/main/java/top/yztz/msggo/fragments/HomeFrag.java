@@ -286,6 +286,7 @@ public class HomeFrag extends Fragment {
                 .setSingleChoiceItems(titles, checkedItem, (dialog, which) -> {
                     Log.i(TAG, "选择号码列: " + titles[which]);
                     DataModel.setNumberColumn(titles[which]);
+                    DataModel.prepareQueue(context);
                     DataModel.saveAsHistory(context);
                     updateStatus();
                     dialog.dismiss();
