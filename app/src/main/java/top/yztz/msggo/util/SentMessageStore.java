@@ -3,6 +3,8 @@ package top.yztz.msggo.util;
 import android.content.Context;
 import android.text.TextUtils;
 
+import top.yztz.msggo.data.DataModel;
+
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,6 +84,8 @@ public final class SentMessageStore {
         Set<String> seen = new HashSet<>();
         int count = 0;
         for (HashMap<String, String> row : rows) {
+            // Notifications count only new operations whose date is today.
+            if (!DataModel.isTodayRow(row)) continue;
             String phone = PhoneNumberUtil.normalizeMapValue(row, numberColumn);
             if (TextUtils.isEmpty(phone)) continue;
             String message = row.get(messageColumn);
