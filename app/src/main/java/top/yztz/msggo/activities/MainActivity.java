@@ -194,6 +194,9 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: ");
+        if (FileSyncManager.isEnabled(this)) {
+            FileSyncManager.syncNow(this);
+        }
     }
 
     @Override
