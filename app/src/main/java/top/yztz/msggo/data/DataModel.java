@@ -4,11 +4,17 @@ import android.content.Context;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 import top.yztz.msggo.exception.DataLoadFailed;
 import top.yztz.msggo.services.SMSSender;
@@ -151,6 +157,110 @@ public class DataModel implements Serializable {
             if (!PhoneNumberUtil.isPlausible(row.get(numberColumn))) invalid++;
         }
         return invalid;
+    }
+
+    /**
+     * Prepare the current file for the next sending run:
+     * 1) remove duplicate recipient+message rows,
+     * 2) remove messages already confirmed as sent for this source file,
+     * 3) sort the remaining queue by the "الوقت" column, oldest first.
+     */
+    public static synchronized int prepareQueue(Context context) {
+        if (!loaded) return 0;
+
+        int before = data == null ? 0 : data.size();
+        deduplicate();
+
+        if (data != null && sourceRowNumbers != null) {
+            String scope = top.yztz.msggo.util.SentMessageStore.scopeKey(context, path);
+            Iterator<HashMap<String, String>> iterator = data.iterator();
+            Iterator<Integer> rowIterator = sourceRowNumbers.iterator();
+
+            while (iterator.hasNext()) {
+                HashMap<String, String> row = iterator.next();
+                rowIterator.next();
+                String phone = getNormalizedPhone(row);
+                String message = getMessageForRow(row);
+                if (top.yztz.msggo.util.SentMessageStore.isSent(context, scope, phone, message)) {
+                    iterator.remove();
+                    rowIterator.remove();
+                }
+            }
+        }
+
+        sortByQueueTime();
+        return before - (data == null ? 0 : data.size());
+    }
+
+    private static void sortByQueueTime() {
+        if (data == null || sourceRowNumbers == null || data.size() < 2) return;
+
+        final String timeColumn = findTimeColumn();
+        if (timeColumn.isEmpty()) return;
+
+        List<Integer> order = new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) order.add(i);
+
+        Collections.sort(order, (left, right) -> {
+            long leftTime = parseQueueTime(data.get(left).get(timeColumn));
+            long rightTime = parseQueueTime(data.get(right).get(timeColumn));
+
+            if (leftTime == Long.MAX_VALUE && rightTime == Long.MAX_VALUE) return Integer.compare(left, right);
+            if (leftTime == Long.MAX_VALUE) return 1;
+            if (rightTime == Long.MAX_VALUE) return -1;
+            int result = Long.compare(leftTime, rightTime);
+            return result != 0 ? result : Integer.compare(left, right);
+        });
+
+        List<HashMap<String, String>> sortedData = new ArrayList<>(data.size());
+        List<Integer> sortedRows = new ArrayList<>(sourceRowNumbers.size());
+        for (Integer index : order) {
+            sortedData.add(data.get(index));
+            sortedRows.add(sourceRowNumbers.get(index));
+        }
+        data = sortedData;
+        sourceRowNumbers = sortedRows;
+    }
+
+    private static String findTimeColumn() {
+        if (titles == null) return "";
+        for (String title : titles) {
+            String n = normalizeHeader(title);
+            if ("الوقت".equals(n) || "time".equals(n)
+                    || "datetime".equals(n) || "date time".equals(n)
+                    || "التاريخ والوقت".equals(n)) {
+                return title;
+            }
+        }
+        return "";
+    }
+
+    private static long parseQueueTime(String value) {
+        if (value == null || value.trim().isEmpty()) return Long.MAX_VALUE;
+        String v = value.trim();
+
+        String[] patterns = {
+                "H:mm M/d/yy",
+                "H:mm:ss M/d/yy",
+                "M/d/yy H:mm",
+                "M/d/yy H:mm:ss",
+                "H:mm M/d/yyyy",
+                "H:mm:ss M/d/yyyy",
+                "M/d/yyyy H:mm",
+                "M/d/yyyy H:mm:ss"
+        };
+
+        for (String pattern : patterns) {
+            try {
+                return LocalDateTime.parse(v, DateTimeFormatter.ofPattern(pattern, Locale.US))
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant().toEpochMilli();
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        // Keep unsupported/blank values at the end without breaking the queue.
+        return Long.MAX_VALUE;
     }
 
     public static int deduplicate() {
