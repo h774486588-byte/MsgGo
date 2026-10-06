@@ -49,19 +49,25 @@ public class FileSyncWorker extends Worker {
                 return Result.success();
             }
 
-            // Validate/read the updated spreadsheet before announcing it.
+            // Read the updated spreadsheet and count only genuinely new rows.
             SpreadsheetReader reader = new SpreadsheetReader();
             reader.read(target.getAbsolutePath());
             java.util.List<java.util.HashMap<String, String>> rows = reader.readContent();
-            int count = rows == null ? 0 : rows.size();
+            String scope = SentMessageStore.scopeKey(context, target.getAbsolutePath());
+            int newCount = SentMessageStore.countNewRows(
+                    context, rows, reader.getTitles(), scope);
 
             context.getSharedPreferences(FileSyncManager.PREFS, Context.MODE_PRIVATE)
                     .edit()
                     .putString(FileSyncManager.KEY_HASH, newHash)
                     .apply();
 
-            showUpdatedNotification(context, target.getName(), count);
-            FileSyncManager.notifyUi(context, target.getAbsolutePath(), count);
+            if (newCount > 0) {
+                showUpdatedNotification(context, target.getName(), newCount);
+            }
+            // Always refresh the visible file after a real source change. The
+            // DataModel queue preparation will hide already-sent rows.
+            FileSyncManager.notifyUi(context, target.getAbsolutePath(), newCount);
             return Result.success();
         } catch (Exception e) {
             return Result.retry();
