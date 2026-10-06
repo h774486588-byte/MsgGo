@@ -195,6 +195,9 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume: ");
+        if (DataModel.loaded()) {
+            DataModel.prepareQueue(this);
+        }
         if (FileSyncManager.isEnabled(this)) {
             FileSyncManager.syncNow(this);
         }
