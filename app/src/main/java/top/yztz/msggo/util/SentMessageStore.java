@@ -85,7 +85,7 @@ public final class SentMessageStore {
         int count = 0;
         for (HashMap<String, String> row : rows) {
             // Notifications count only new operations whose date is today.
-            if (!DataModel.isTodayRow(row)) continue;
+            if (!DataModel.isTodayRow(row, titles)) continue;
             String phone = PhoneNumberUtil.normalizeMapValue(row, numberColumn);
             if (TextUtils.isEmpty(phone)) continue;
             String message = row.get(messageColumn);
