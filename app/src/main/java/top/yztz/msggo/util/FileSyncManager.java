@@ -55,6 +55,7 @@ public final class FileSyncManager {
     }
 
     public static void schedule(Context context) {
+        if (getUri(context) == null) return;
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build();
