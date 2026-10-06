@@ -16,6 +16,11 @@ android {
     }
     buildTypes {
         release {
+            // Build an installable APK for the final distribution artifact.
+            // This uses the Android debug keystore available on the CI runner.
+            // A user-owned release keystore should replace this before public distribution.
+            signingConfig signingConfigs.debug
+            minifyEnabled false
         }
     }
     androidResources {
@@ -31,7 +36,8 @@ android {
         variant.outputs.all {
             def abi = filters.find { it.filterType == 'ABI' }?.identifier ?: "universal"
             def typeSuffix = variant.buildType.name == 'release' ? "" : "-unsigned"
-            outputFileName = "MsgGo-${variant.versionName}-${abi}${typeSuffix}.apk"
+            def productName = variant.buildType.name == 'release' ? "WASEEM-MESSAGE-SENDER-PRO" : "MsgGo"
+            outputFileName = "${productName}-${variant.versionName}-${abi}${typeSuffix}.apk"
         }
     }
 }
