@@ -6,7 +6,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  issues: write
 
 jobs:
   build:
@@ -32,17 +33,21 @@ jobs:
           ./gradlew assembleDebug --stacktrace --console=plain 2>&1 | tee gradle-build.log
           echo ${PIPESTATUS[0]} > gradle-exit-code.txt
 
-      - name: Save failure log to repository
+      - name: Publish Gradle error for diagnosis
         if: steps.build.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          mkdir -p .build-diagnostics
-          cp gradle-build.log .build-diagnostics/gradle-build.log
-          cp gradle-exit-code.txt .build-diagnostics/gradle-exit-code.txt
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add .build-diagnostics
-          git commit -m "Capture Gradle build diagnostics" || true
-          git push --force origin HEAD:build-diagnostics
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          text = Path("gradle-build.log").read_text(errors="replace")
+          lines = text.splitlines()
+          tail = "\\n".join(lines[-120:])
+          body = "Automated Gradle build failure for " + "${{ github.sha }}" + "\\n\\n```text\\n" + tail[:12000] + "\\n```"
+          Path("/tmp/issue.json").write_text(json.dumps({"title":"Build diagnostic ${{ github.sha }}","body":body}))
+          PY
+          curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/${{ github.repository }}/issues --data-binary @/tmp/issue.json
 
       - name: Upload build log
         if: always()
