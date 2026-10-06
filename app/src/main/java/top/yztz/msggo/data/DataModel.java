@@ -213,6 +213,21 @@ public class DataModel implements Serializable {
         return isTodayRow(row, findTimeColumn());
     }
 
+    public static boolean isTodayRow(HashMap<String, String> row, String[] columnTitles) {
+        if (columnTitles == null) return false;
+        String timeColumn = "";
+        for (String title : columnTitles) {
+            String n = normalizeHeader(title);
+            if ("الوقت".equals(n) || "time".equals(n)
+                    || "datetime".equals(n) || "date time".equals(n)
+                    || "التاريخ والوقت".equals(n)) {
+                timeColumn = title;
+                break;
+            }
+        }
+        return isTodayRow(row, timeColumn);
+    }
+
     private static boolean isTodayRow(HashMap<String, String> row, String timeColumn) {
         if (row == null || timeColumn == null || timeColumn.isEmpty()) return false;
         LocalDateTime parsed = parseQueueDateTime(row.get(timeColumn));
