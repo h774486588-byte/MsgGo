@@ -280,11 +280,14 @@ public class DataModel implements Serializable {
     private static LocalDateTime parseQueueDateTime(String value) {
         if (value == null || value.trim().isEmpty()) return null;
         String v = value.trim();
+        v = normalizeDateDigits(v);
         String[] patterns = {
-                "H:mm M/d/yy", "H:mm:ss M/d/yy",
-                "M/d/yy H:mm", "M/d/yy H:mm:ss",
-                "H:mm M/d/yyyy", "H:mm:ss M/d/yyyy",
-                "M/d/yyyy H:mm", "M/d/yyyy H:mm:ss"
+                "H:mm M/d/yy", "H:mm:ss M/d/yy", "M/d/yy H:mm", "M/d/yy H:mm:ss",
+                "H:mm M/d/yyyy", "H:mm:ss M/d/yyyy", "M/d/yyyy H:mm", "M/d/yyyy H:mm:ss",
+                "H:mm d/M/yy", "H:mm:ss d/M/yy", "d/M/yy H:mm", "d/M/yy H:mm:ss",
+                "H:mm d/M/yyyy", "H:mm:ss d/M/yyyy", "d/M/yyyy H:mm", "d/M/yyyy H:mm:ss",
+                "yyyy-MM-dd H:mm", "yyyy-MM-dd H:mm:ss", "H:mm yyyy-MM-dd", "H:mm:ss yyyy-MM-dd",
+                "yyyy/M/d H:mm", "yyyy/M/d H:mm:ss", "H:mm yyyy/M/d", "H:mm:ss yyyy/M/d"
         };
         for (String pattern : patterns) {
             try {
@@ -292,6 +295,17 @@ public class DataModel implements Serializable {
             } catch (DateTimeParseException ignored) {}
         }
         return null;
+    }
+
+    private static String normalizeDateDigits(String value) {
+        if (value == null) return "";
+        StringBuilder out = new StringBuilder(value.length());
+        for (char c : value.toCharArray()) {
+            if (c >= '٠' && c <= '٩') out.append((char) ('0' + (c - '٠')));
+            else if (c >= '۰' && c <= '۹') out.append((char) ('0' + (c - '۰')));
+            else out.append(c);
+        }
+        return out.toString().trim();
     }
 
     private static long parseQueueTime(String value) {
