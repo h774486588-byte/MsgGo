@@ -35,8 +35,8 @@ android {
     applicationVariants.all { variant ->
         variant.outputs.all {
             def abi = filters.find { it.filterType == 'ABI' }?.identifier ?: "universal"
-            def typeSuffix = variant.buildType.name == 'release' ? "" : "-unsigned"
-            def productName = variant.buildType.name == 'release' ? "WASEEM-MESSAGE-SENDER-PRO" : "MsgGo"
+            def typeSuffix = ""
+            def productName = "WASEEM-MESSAGE-SENDER-PRO"
             outputFileName = "${productName}-${variant.versionName}-${abi}${typeSuffix}.apk"
         }
     }
