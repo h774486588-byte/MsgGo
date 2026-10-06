@@ -218,4 +218,13 @@
     <string name="sync_ready_title">File updated and messages prepared</string>
     <string name="sync_ready_count">%1$d messages are ready</string>
     <string name="sync_ready_detail">File %1$s was updated. %2$d messages are ready for preview and sending.</string>
+    <string name="sync_title">Automatic file sync</string>
+    <string name="sync_enabled">🟢 Sync enabled — checks every 15 minutes</string>
+    <string name="sync_disabled">⚪ Sync disabled</string>
+    <string name="sync_select_file_first">Select an Excel file first to enable sync</string>
+    <string name="sync_last_format">Last sync: %1$s</string>
+    <string name="sync_waiting">Waiting for first sync…</string>
+    <string name="sync_now">Sync now</string>
+    <string name="sync_checking">Checking file…</string>
+    <string name="sync_started">File check started</string>
 </resources>
