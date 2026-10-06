@@ -50,6 +50,7 @@ import top.yztz.msggo.data.MessageState;
 import top.yztz.msggo.data.SettingManager;
 import top.yztz.msggo.services.MessageService;
 import top.yztz.msggo.util.FileUtil;
+import top.yztz.msggo.util.SentMessageStore;
 
 public class SendingActivity extends AppCompatActivity implements MessageService.Callback {
     private static final String TAG = "SendingActivity";
@@ -77,6 +78,7 @@ public class SendingActivity extends AppCompatActivity implements MessageService
     private int confirmedCount = 0;
     private boolean isPaused = false;
     private boolean isStopped = false;
+    private String sentScope = "";
 
     public enum SendingState {
         IDLE, SENDING, PAUSED, COMPLETED, CANCELLED
@@ -129,6 +131,7 @@ public class SendingActivity extends AppCompatActivity implements MessageService
 
         // Load settings
         subId = DataModel.getSubId();
+        sentScope = SentMessageStore.scopeKey(this, DataModel.getPath());
         delay = SettingManager.getDelay();
         randomize = SettingManager.isRandomizeDelay();
 
@@ -283,6 +286,11 @@ public class SendingActivity extends AppCompatActivity implements MessageService
     public void onMessageConfirmed(int index, boolean success) {
         runOnUiThread(() -> {
             updateMessageState(index, success ? MessageState.SENT : MessageState.FAILED);
+            if (success) {
+                Message sentMessage = messages.get(index);
+                SentMessageStore.markSent(this, sentScope,
+                        sentMessage.getPhone(), sentMessage.getContent());
+            }
             confirmedCount++;
             updateProgress(confirmedCount, messages.size(), tvConfirmedCount, progressConfirmed);
             checkCompletion();
