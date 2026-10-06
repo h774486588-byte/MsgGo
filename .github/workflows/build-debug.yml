@@ -43,7 +43,7 @@ jobs:
           from pathlib import Path
           text = Path("gradle-build.log").read_text(errors="replace")
           lines = text.splitlines()
-          tail = "\\n".join(lines[-120:])
+          tail = "\\n".join(lines[-160:])
           body = "Automated Gradle build failure for " + "${{ github.sha }}" + "\\n\\n```text\\n" + tail[:12000] + "\\n```"
           Path("/tmp/issue.json").write_text(json.dumps({"title":"Build diagnostic ${{ github.sha }}","body":body}))
           PY
