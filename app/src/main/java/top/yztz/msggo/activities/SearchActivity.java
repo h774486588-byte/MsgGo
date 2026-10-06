@@ -26,6 +26,7 @@ import top.yztz.msggo.R;
 import top.yztz.msggo.data.DataModel;
 import top.yztz.msggo.data.Message;
 import top.yztz.msggo.util.PhoneNumberUtil;
+import top.yztz.msggo.util.SentMessageStore;
 import top.yztz.msggo.services.SMSSender;
 
 public class SearchActivity extends AppCompatActivity {
