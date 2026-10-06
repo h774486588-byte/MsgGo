@@ -215,4 +215,7 @@
     <string name="individual_sms_submitted">Message submitted to the SMS service</string>
     <string name="individual_sms_failed">Could not send the message</string>
     <string name="send_selected_whatsapp">Send Selected via WhatsApp</string>
+    <string name="sync_ready_title">File updated and messages prepared</string>
+    <string name="sync_ready_count">%1$d messages are ready</string>
+    <string name="sync_ready_detail">File %1$s was updated. %2$d messages are ready for preview and sending.</string>
 </resources>
