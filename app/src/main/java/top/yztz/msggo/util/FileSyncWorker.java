@@ -62,6 +62,7 @@ public class FileSyncWorker extends Worker {
             context.getSharedPreferences(FileSyncManager.PREFS, Context.MODE_PRIVATE)
                     .edit()
                     .putString(FileSyncManager.KEY_HASH, newHash)
+                    .putLong(FileSyncManager.KEY_LAST_SYNC, System.currentTimeMillis())
                     .apply();
 
             if (newCount > 0) {
