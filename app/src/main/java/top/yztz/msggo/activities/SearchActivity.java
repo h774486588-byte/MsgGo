@@ -161,6 +161,12 @@ public class SearchActivity extends AppCompatActivity {
             submitted = false;
         }
 
+        if (submitted) {
+            SentMessageStore.markSent(this,
+                    SentMessageStore.scopeKey(this, DataModel.getPath()),
+                    phone, message);
+        }
+
         Toast.makeText(this,
                 submitted ? R.string.individual_sms_submitted : R.string.individual_sms_failed,
                 Toast.LENGTH_SHORT).show();
