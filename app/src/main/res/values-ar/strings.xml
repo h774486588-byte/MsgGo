@@ -194,4 +194,13 @@
     <string name="sync_ready_title">تم تحديث الملف وتجهيز الرسائل</string>
     <string name="sync_ready_count">تم تجهيز %1$d رسالة</string>
     <string name="sync_ready_detail">الملف %1$s تم تحديثه. تم تجهيز %2$d رسالة جديدة للمعاينة والإرسال.</string>
+    <string name="sync_title">المزامنة التلقائية للملف</string>
+    <string name="sync_enabled">🟢 المزامنة مفعّلة — فحص تلقائي كل 15 دقيقة</string>
+    <string name="sync_disabled">⚪ المزامنة غير مفعّلة</string>
+    <string name="sync_select_file_first">اختر ملف Excel أولًا لتفعيل المزامنة</string>
+    <string name="sync_last_format">آخر مزامنة: %1$s</string>
+    <string name="sync_waiting">بانتظار أول مزامنة…</string>
+    <string name="sync_now">مزامنة الآن</string>
+    <string name="sync_checking">جارٍ فحص الملف…</string>
+    <string name="sync_started">بدأ فحص الملف الآن</string>
 </resources>
