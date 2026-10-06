@@ -3,6 +3,8 @@ package top.yztz.msggo.util;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
+import android.app.PendingIntent;
 import android.net.Uri;
 import android.provider.OpenableColumns;
 import android.database.Cursor;
@@ -125,12 +127,19 @@ public class FileSyncWorker extends Worker {
                 NotificationManager.IMPORTANCE_DEFAULT);
         manager.createNotificationChannel(channel);
 
+        Intent openIntent = new Intent(context, top.yztz.msggo.activities.MainActivity.class);
+        openIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                context, 24013, openIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL)
                 .setSmallIcon(R.drawable.ic_table)
                 .setContentTitle(context.getString(R.string.sync_ready_title))
                 .setContentText(context.getString(R.string.sync_ready_count, count))
                 .setStyle(new NotificationCompat.BigTextStyle()
                         .bigText(context.getString(R.string.sync_ready_detail, fileName, count)))
+                .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT);
 
