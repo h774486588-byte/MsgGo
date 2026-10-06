@@ -20,6 +20,7 @@ public final class FileSyncManager {
     public static final String KEY_URI = "selected_uri";
     public static final String KEY_HASH = "last_hash";
     public static final String KEY_FILE_NAME = "file_name";
+    public static final String KEY_LAST_SYNC = "last_sync";
     public static final String ACTION_FILE_UPDATED = "top.yztz.msggo.FILE_UPDATED";
     public static final String EXTRA_PATH = "path";
     public static final String EXTRA_COUNT = "count";
@@ -47,6 +48,16 @@ public final class FileSyncManager {
 
     public static boolean isEnabled(Context context) {
         return getUri(context) != null;
+    }
+
+    public static long getLastSync(Context context) {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getLong(KEY_LAST_SYNC, 0L);
+    }
+
+    public static String getFileName(Context context) {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(KEY_FILE_NAME, "");
     }
 
     public static void clear(Context context) {
