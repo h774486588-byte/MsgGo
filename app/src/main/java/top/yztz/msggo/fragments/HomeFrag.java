@@ -61,6 +61,7 @@ import top.yztz.msggo.data.HistoryManager;
 import top.yztz.msggo.services.SMSSender;
 import top.yztz.msggo.util.FileUtil;
 import top.yztz.msggo.util.ToastUtil;
+import top.yztz.msggo.util.FileSyncManager;
 import android.util.Log;
 
 public class HomeFrag extends Fragment {
@@ -96,7 +97,21 @@ public class HomeFrag extends Fragment {
                     if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                         Uri uri = result.getData().getData();
                         if (uri != null) {
-                            Log.i(TAG, "Importing file from picker: " + uri);
+                            Log.i(TAG, "Importing and remembering file for automatic sync: " + uri);
+                            try {
+                                int takeFlags = result.getData().getFlags()
+                                        & (Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                                requireContext().getContentResolver()
+                                        .takePersistableUriPermission(uri, takeFlags);
+                            } catch (Exception ignored) {
+                                // Some providers (including older cloud providers) do not
+                                // support persistable permissions. The immediate import still works.
+                            }
+
+                            String fileName = FileUtil.getBriefFilename(
+                                    FileUtil.getFilePathFromContentUri(requireContext(), uri));
+                            FileSyncManager.rememberUri(requireContext(), uri, fileName);
                             String path = FileUtil.getFilePathFromContentUri(requireContext(), uri);
                             dataLoader.loadData(path);
                         }
@@ -340,8 +355,10 @@ public class HomeFrag extends Fragment {
     }
 
     private void openFileChooser() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         intent.setType("*/*");
         filePickerLauncher.launch(intent);
     }
