@@ -34,6 +34,8 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -51,6 +53,7 @@ import top.yztz.msggo.fragments.HomeFrag;
 import top.yztz.msggo.fragments.SettingFrag;
 import top.yztz.msggo.services.SMSSender;
 import top.yztz.msggo.util.FileUtil;
+import top.yztz.msggo.util.FileSyncManager;
 import top.yztz.msggo.util.LocaleUtils;
 import top.yztz.msggo.util.ToastUtil;
 import top.yztz.msggo.util.XiaomiUtil;
@@ -76,6 +79,18 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
     private ViewPager2 viewPager;
     private ImageView ivHeaderImage;
     private List<String> permissionsToRequest;
+
+    private final BroadcastReceiver fileSyncReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (!FileSyncManager.ACTION_FILE_UPDATED.equals(intent.getAction())) return;
+            String path = intent.getStringExtra(FileSyncManager.EXTRA_PATH);
+            if (!TextUtils.isEmpty(path)) {
+                Log.i(TAG, "Synchronized updated file: " + path);
+                loadData(path);
+            }
+        }
+    };
 
     /**
      * 初始化fragment
@@ -183,6 +198,7 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
 
     @Override
     protected void onDestroy() {
+        try { unregisterReceiver(fileSyncReceiver); } catch (Exception ignored) {}
         super.onDestroy();
         Log.d(TAG, "onDestroy: reset DataModel");
         DataModel.clear();
@@ -224,6 +240,10 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate: ");
         SettingManager.init(this);
+        ContextCompat.registerReceiver(this, fileSyncReceiver,
+                new IntentFilter(FileSyncManager.ACTION_FILE_UPDATED),
+                ContextCompat.RECEIVER_NOT_EXPORTED);
+        FileSyncManager.schedule(this);
         AppCompatDelegate.setDefaultNightMode(SettingManager.getDarkMode());
 
         LocaleUtils.applyLocale();
