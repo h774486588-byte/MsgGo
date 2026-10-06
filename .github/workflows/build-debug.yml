@@ -24,12 +24,12 @@ jobs:
       - name: Make Gradle executable
         run: chmod +x gradlew
 
-      - name: Build final signed APK
+      - name: Build final installable APK
         id: build
         continue-on-error: true
         run: |
           set -o pipefail
-          ./gradlew assembleRelease --stacktrace --console=plain 2>&1 | tee gradle-build.log
+          ./gradlew assembleDebug --stacktrace --console=plain 2>&1 | tee gradle-build.log
           echo ${PIPESTATUS[0]} > gradle-exit-code.txt
 
       - name: Publish Gradle error for diagnosis
@@ -66,10 +66,16 @@ jobs:
         if: steps.build.outcome == 'failure'
         run: exit 1
 
+      - name: Verify APK signature
+        run: |
+          APK=$(find app/build/outputs/apk/debug -name '*.apk' | head -n 1)
+          echo "APK=$APK"
+          ${ANDROID_HOME}/build-tools/35.0.0/apksigner verify --verbose "$APK"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: WASEEM-MESSAGE-SENDER-PRO-final
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 14
