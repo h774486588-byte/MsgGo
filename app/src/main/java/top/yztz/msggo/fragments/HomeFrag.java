@@ -68,7 +68,8 @@ public class HomeFrag extends Fragment {
     private static final String TAG = "HomeFrag";
     private Context context;
 
-    private View rowCurrentFile, rowNumberColumn, rowEditContent, rowSelectSim, rowSend, cardSend;
+    private View rowCurrentFile, rowNumberColumn, rowEditContent, rowSelectSim, rowSend, cardSend, cardFileSync, rowSyncNow;
+    private TextView tvSyncStatus, tvSyncLast;
     private ViewGroup containerHome;
     private TextView tvSimInfo, tvSubtitleEdit, tvEmptyHistory;
     private TextView tvCurrentFilePath, tvCurrentNumberColumn;
@@ -163,6 +164,10 @@ public class HomeFrag extends Fragment {
         cardSend = view.findViewById(R.id.card_send);
         containerHome = view.findViewById(R.id.container_home);
         tvCurrentFilePath = view.findViewById(R.id.tv_current_file_path);
+        cardFileSync = view.findViewById(R.id.card_file_sync);
+        rowSyncNow = view.findViewById(R.id.row_sync_now);
+        tvSyncStatus = view.findViewById(R.id.tv_sync_status);
+        tvSyncLast = view.findViewById(R.id.tv_sync_last);
         tvCurrentNumberColumn = view.findViewById(R.id.tv_current_number_column);
 
         rvHistory.setLayoutManager(new LinearLayoutManager(context));
@@ -203,6 +208,18 @@ public class HomeFrag extends Fragment {
 
         // File import
         rowCurrentFile.setOnClickListener(v -> openFileChooser());
+
+        // Manual synchronization
+        rowSyncNow.setOnClickListener(v -> {
+            if (!FileSyncManager.isEnabled(context)) {
+                ToastUtil.show(context, getString(R.string.sync_select_file_first));
+                openFileChooser();
+                return;
+            }
+            FileSyncManager.syncNow(context);
+            tvSyncStatus.setText(getString(R.string.sync_checking));
+            ToastUtil.show(context, getString(R.string.sync_started));
+        });
 
         // Number column selection
         rowNumberColumn.setOnClickListener(v -> showNumberColumnSelector());
@@ -309,6 +326,8 @@ public class HomeFrag extends Fragment {
 
         // Always show Data row
         rowCurrentFile.setVisibility(View.VISIBLE);
+        cardFileSync.setVisibility(FileSyncManager.isEnabled(context) ? View.VISIBLE : View.GONE);
+        updateSyncStatus();
 
         // 1. Data Status
         if (DataModel.loaded() && !TextUtils.isEmpty(DataModel.getPath())) {
@@ -353,6 +372,23 @@ public class HomeFrag extends Fragment {
         }
 
         loadHistory();
+    }
+
+    private void updateSyncStatus() {
+        if (tvSyncStatus == null || tvSyncLast == null) return;
+        if (!FileSyncManager.isEnabled(context)) {
+            tvSyncStatus.setText(getString(R.string.sync_disabled));
+            tvSyncLast.setText(getString(R.string.sync_select_file_first));
+            return;
+        }
+        tvSyncStatus.setText(getString(R.string.sync_enabled));
+        long last = FileSyncManager.getLastSync(context);
+        if (last > 0) {
+            SimpleDateFormat fmt = new SimpleDateFormat("yyyy/MM/dd  HH:mm", Locale.getDefault());
+            tvSyncLast.setText(getString(R.string.sync_last_format, fmt.format(new Date(last))));
+        } else {
+            tvSyncLast.setText(getString(R.string.sync_waiting));
+        }
     }
 
     private void openFileChooser() {
