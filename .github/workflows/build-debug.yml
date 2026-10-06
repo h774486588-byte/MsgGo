@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  issues: write
+  contents: write
 
 jobs:
   build:
@@ -34,21 +33,24 @@ jobs:
           echo ${PIPESTATUS[0]} > gradle-exit-code.txt
 
       - name: Publish Gradle error for diagnosis
-        if: steps.build.outcome == 'failure'
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 - <<'PY'
-          import json
+          import base64, json, os, urllib.request
           from pathlib import Path
-          text = Path("gradle-build.log").read_text(errors="replace")
-          lines = text.splitlines()
-          tail = "\\n".join(lines[-160:])
-          body = "Automated Gradle build failure for " + "${{ github.sha }}" + "\\n\\n```text\\n" + tail[:12000] + "\\n```"
-          Path("/tmp/issue.json").write_text(json.dumps({"title":"Build diagnostic ${{ github.sha }}","body":body}))
+          p=Path('gradle-build.log')
+          text=p.read_text(errors='replace') if p.exists() else 'NO LOG'
+          text=text[-30000:]
+          api='https://api.github.com/repos/${{ github.repository }}/contents/.build-diagnostics/gradle-build.log'
+          payload={'message':'Capture Gradle build diagnostic','content':base64.b64encode(text.encode()).decode(),'branch':'master'}
+          req=urllib.request.Request(api,data=json.dumps(payload).encode(),method='PUT',headers={'Authorization':f"Bearer {os.environ['GH_TOKEN']}",'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'})
+          try:
+              print(urllib.request.urlopen(req).read().decode())
+          except urllib.error.HTTPError as e:
+              print(e.read().decode())
           PY
-          curl -sS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/${{ github.repository }}/issues --data-binary @/tmp/issue.json
-
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
