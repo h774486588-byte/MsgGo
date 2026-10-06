@@ -429,6 +429,12 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
             }
         }
 
+        // After restoring the saved template/SIM settings, rebuild the queue:
+        // already-confirmed messages are removed and remaining rows are sorted by وقت.
+        int removedFromQueue = DataModel.prepareQueue(MainActivity.this);
+        Log.i(TAG, "Queue prepared. Removed old/duplicate rows: " + removedFromQueue
+                + ", ready rows: " + DataModel.getRowCount());
+
         String[] titles = DataModel.getTitles();
         if (!TextUtils.isEmpty(DataModel.getNumberColumn())) {
             Log.i(TAG, "Use existing history");
