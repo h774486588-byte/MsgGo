@@ -5,6 +5,7 @@ on:
     tags:
       - 'v*'
       - '[0-9]*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,22 +17,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify version matches tag
+      - name: Verify version matches tag when tag-triggered
+        if: startsWith(github.ref, 'refs/tags/')
         run: |
-          # Extract versionName from build.gradle
           VERSION_NAME=$(grep 'versionName' app/build.gradle | head -1 | sed 's/.*versionName "\(.*\)"/\1/')
-          # Get tag name (remove refs/tags/ prefix and 'v' if present)
           TAG_NAME="${GITHUB_REF#refs/tags/}"
           TAG_VERSION="${TAG_NAME#v}"
-          
           echo "Version from build.gradle: $VERSION_NAME"
           echo "Version from tag: $TAG_VERSION"
-          
           if [ "$VERSION_NAME" != "$TAG_VERSION" ]; then
-            echo "::error::Version mismatch! build.gradle has '$VERSION_NAME' but tag is '$TAG_VERSION'"
+            echo "::error::Version mismatch: build.gradle=$VERSION_NAME tag=$TAG_VERSION"
             exit 1
           fi
-          echo "✅ Version check passed!"
+
+      - name: Check release signing secrets
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          test -n "$KEYSTORE" || (echo "::error::Missing repository secret KEYSTORE"; exit 1)
+          test -n "$KEY_ALIAS" || (echo "::error::Missing repository secret KEY_ALIAS"; exit 1)
+          test -n "$KEYSTORE_PASSWORD" || (echo "::error::Missing repository secret KEYSTORE_PASSWORD"; exit 1)
+          test -n "$KEY_PASSWORD" || (echo "::error::Missing repository secret KEY_PASSWORD"; exit 1)
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -43,10 +52,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew assembleRelease
+      - name: Build unsigned release APK
+        run: ./gradlew --no-daemon assembleRelease --stacktrace --console=plain
 
-      - name: Sign APK
+      - name: Sign APK with persistent release key
         uses: r0adkll/sign-android-release@v1
         id: sign_app
         with:
@@ -56,21 +65,32 @@ jobs:
           keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
-          BUILD_TOOLS_VERSION: "34.0.0"
+          BUILD_TOOLS_VERSION: "35.0.0"
 
-      - name: Prepare Release Artifacts
+      - name: Verify signed APK and calculate checksum
         run: |
+          set -euo pipefail
+          APK=$(find app/build/outputs/apk/release -maxdepth 1 -type f -name '*-signed.apk' | head -n 1)
+          test -n "$APK" || (echo "::error::Signed APK not found"; exit 1)
+          "${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+          sha256sum "$APK" | tee app/build/outputs/apk/release/SHA256SUMS.txt
           mkdir -p release_artifacts
-          find app/build/outputs/apk/release -name "MsgGo-*-signed.apk" | while read -r apk; do
-            NEW_NAME=$(basename "$apk" | sed 's/-signed//')
-            mv "$apk" "release_artifacts/$NEW_NAME"
-          done
+          cp "$APK" release_artifacts/WASEEM-MESSAGE-SENDER-PRO.apk
+          cp app/build/outputs/apk/release/SHA256SUMS.txt release_artifacts/SHA256SUMS.txt
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Upload signed APK artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: release_artifacts/*.apk
+          name: WASEEM-MESSAGE-SENDER-PRO-signed-release
+          path: release_artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release_artifacts/*
           generate_release_notes: true
           prerelease: false
         env:
