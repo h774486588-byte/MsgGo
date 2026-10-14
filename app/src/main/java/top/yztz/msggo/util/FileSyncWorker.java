@@ -58,6 +58,12 @@ public class FileSyncWorker extends Worker {
             int newCount = SentMessageStore.countNewRows(
                     context, rows, reader.getTitles(), scope);
 
+            // Persist all rows (including historical dates) in a separate local
+            // registry. This runs on every changed spreadsheet and de-duplicates
+            // imports without resetting previously stored delivery states.
+            new ImportedNotificationStore(context).importRowsAuto(
+                    rows, reader.getTitles(), scope);
+
             context.getSharedPreferences(FileSyncManager.PREFS, Context.MODE_PRIVATE)
                     .edit()
                     .putString(FileSyncManager.KEY_HASH, newHash)
