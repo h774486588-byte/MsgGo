@@ -290,6 +290,11 @@ public class SendingActivity extends AppCompatActivity implements MessageService
                 Message sentMessage = messages.get(index);
                 SentMessageStore.markSent(this, sentScope,
                         sentMessage.getPhone(), sentMessage.getContent());
+                String eventDate = DataModel.getEventDateForMessage(
+                        sentMessage.getPhone(), sentMessage.getContent());
+                new top.yztz.msggo.util.ArchiveStore(this).archiveSent(
+                        sentMessage.getPhone(), sentMessage.getContent(), eventDate,
+                        DataModel.getPath());
             }
             confirmedCount++;
             updateProgress(confirmedCount, messages.size(), tvConfirmedCount, progressConfirmed);
