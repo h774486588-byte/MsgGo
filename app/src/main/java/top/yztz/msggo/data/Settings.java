@@ -36,7 +36,8 @@ public class Settings {
     // language
     public static final String LANGUAGE_DEFAULT = "auto";
 
-    public static final int EXCEL_ROW_COUNT_MAX = 200;
+    // Supports large historical notification files; file-size protection remains enabled.
+    public static final int EXCEL_ROW_COUNT_MAX = 100000;
     public static final long EXCEL_FILE_SIZE_MAX = 50 * 1024 * 1024; // 50MB
 
 }
