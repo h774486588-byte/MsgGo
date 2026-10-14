@@ -15,7 +15,6 @@ import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
@@ -58,6 +57,12 @@ public class FileSyncWorker extends Worker {
             String scope = SentMessageStore.scopeKey(context, target.getAbsolutePath());
             int newCount = SentMessageStore.countNewRows(
                     context, rows, reader.getTitles(), scope);
+
+            // Persist all rows (including historical dates) in a separate local
+            // registry. This runs on every changed spreadsheet and de-duplicates
+            // imports without resetting previously stored delivery states.
+            new ImportedNotificationStore(context).importRowsAuto(
+                    rows, reader.getTitles(), scope);
 
             context.getSharedPreferences(FileSyncManager.PREFS, Context.MODE_PRIVATE)
                     .edit()
@@ -103,16 +108,54 @@ public class FileSyncWorker extends Worker {
 
     private String copyAndHash(Context context, Uri uri, File target) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        try (InputStream in = context.getContentResolver().openInputStream(uri);
-             FileOutputStream out = new FileOutputStream(target)) {
-            if (in == null) return "";
-            byte[] buffer = new byte[16 * 1024];
-            int n;
-            while ((n = in.read(buffer)) != -1) {
-                digest.update(buffer, 0, n);
-                out.write(buffer, 0, n);
-            }
+        File parent = target.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new java.io.IOException("Unable to create sync directory");
         }
+
+        // Never overwrite the last known-good spreadsheet until the new copy
+        // has been completely read and written. A provider/network interruption
+        // must not leave a truncated file that the UI then tries to open.
+        File temporary = new File(target.getParentFile(), target.getName() + ".tmp");
+        File backup = new File(target.getParentFile(), target.getName() + ".bak");
+        boolean hadTarget = target.exists();
+        try (InputStream in = context.getContentResolver().openInputStream(uri)) {
+            if (in == null) return "";
+            try (FileOutputStream out = new FileOutputStream(temporary, false)) {
+                byte[] buffer = new byte[16 * 1024];
+                int n;
+                while ((n = in.read(buffer)) != -1) {
+                    digest.update(buffer, 0, n);
+                    out.write(buffer, 0, n);
+                }
+                out.getFD().sync();
+            }
+        } catch (Exception e) {
+            temporary.delete();
+            throw e;
+        }
+
+        if (temporary.length() == 0L) {
+            temporary.delete();
+            return "";
+        }
+
+        // Keep a recoverable copy of the previous file while promoting the new one.
+        if (backup.exists() && !backup.delete()) {
+            temporary.delete();
+            throw new java.io.IOException("Unable to clear previous sync backup");
+        }
+        if (hadTarget && !target.renameTo(backup)) {
+            temporary.delete();
+            throw new java.io.IOException("Unable to preserve previous synced spreadsheet");
+        }
+        if (!temporary.renameTo(target)) {
+            if (hadTarget) backup.renameTo(target);
+            temporary.delete();
+            throw new java.io.IOException("Unable to activate new synced spreadsheet");
+        }
+        if (backup.exists()) backup.delete();
+
         byte[] bytes = digest.digest();
         StringBuilder result = new StringBuilder(bytes.length * 2);
         for (byte b : bytes) result.append(String.format("%02x", b));

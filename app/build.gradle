@@ -16,10 +16,9 @@ android {
     }
     buildTypes {
         release {
-            // Build an installable APK for the final distribution artifact.
-            // This uses the Android debug keystore available on the CI runner.
-            // A user-owned release keystore should replace this before public distribution.
-            signingConfig signingConfigs.debug
+            // Keep the release APK unsigned here. The release workflow signs it with
+            // the persistent keystore stored in GitHub Actions secrets.
+            // Never use a runner-generated debug key for distributable updates.
             minifyEnabled false
         }
     }

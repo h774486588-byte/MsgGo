@@ -256,6 +256,22 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
         LocaleUtils.applyLocale();
         setContentView(R.layout.activity_main);
 
+        // Direct entry point to the permanent sent-notification archive.
+        androidx.appcompat.widget.Toolbar mainToolbar = findViewById(R.id.toolbar);
+        if (mainToolbar != null) {
+            android.view.MenuItem archiveItem = mainToolbar.getMenu().add("الأرشيف");
+            archiveItem.setIcon(android.R.drawable.ic_menu_search);
+            archiveItem.setContentDescription("فتح أرشيف الإشعارات والبحث بالتاريخ أو رقم الهاتف");
+            archiveItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS | android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+            mainToolbar.setOnMenuItemClickListener(item -> {
+                if (item == archiveItem) {
+                    startActivity(new Intent(MainActivity.this, ArchiveActivity.class));
+                    return true;
+                }
+                return false;
+            });
+        }
+
         // Check Privacy Policy and Disclaimer
         if (!SettingManager.isPrivacyAccepted()) {
             showPrivacyDialog();
@@ -431,6 +447,16 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
                     DataModel.setSubId(historyItem.subId);
                 }
             }
+        }
+
+        // Import every row before prepareQueue filters historical rows and removes duplicates.
+        // The durable imported ledger is separate from the send queue and preserves prior status.
+        try {
+            new top.yztz.msggo.util.ImportedNotificationStore(MainActivity.this)
+                    .importRowsAuto(DataModel.getData(), DataModel.getTitles(), DataModel.getPath());
+        } catch (Exception e) {
+            Log.e(TAG, "Could not persist imported notification ledger", e);
+            ToastUtil.show(MainActivity.this, "تم تحميل الملف، لكن تعذر تحديث سجل الإشعارات الدائم.");
         }
 
         // After restoring the saved template/SIM settings, rebuild the queue:

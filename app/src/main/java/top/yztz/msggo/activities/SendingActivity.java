@@ -286,11 +286,23 @@ public class SendingActivity extends AppCompatActivity implements MessageService
     public void onMessageConfirmed(int index, boolean success) {
         runOnUiThread(() -> {
             updateMessageState(index, success ? MessageState.SENT : MessageState.FAILED);
+            Message sentMessage = messages.get(index);
+            String eventDate = DataModel.getEventDateForMessage(
+                    sentMessage.getPhone(), sentMessage.getContent());
             if (success) {
-                Message sentMessage = messages.get(index);
                 SentMessageStore.markSent(this, sentScope,
                         sentMessage.getPhone(), sentMessage.getContent());
+                new top.yztz.msggo.util.ArchiveStore(this).archiveSent(
+                        sentMessage.getPhone(), sentMessage.getContent(), eventDate,
+                        DataModel.getPath());
             }
+            // Only exact raw-message matches are updated. If a template changed the text,
+            // the imported row remains pending instead of incorrectly marking another row.
+            new top.yztz.msggo.util.ImportedNotificationStore(this).setStatusMatching(
+                    DataModel.getPath(), sentMessage.getPhone(), sentMessage.getContent(),
+                    eventDate, success
+                            ? top.yztz.msggo.util.ImportedNotificationStore.SENT
+                            : top.yztz.msggo.util.ImportedNotificationStore.FAILED);
             confirmedCount++;
             updateProgress(confirmedCount, messages.size(), tvConfirmedCount, progressConfirmed);
             checkCompletion();
