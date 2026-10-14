@@ -256,6 +256,20 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
         LocaleUtils.applyLocale();
         setContentView(R.layout.activity_main);
 
+        // Direct entry point to the permanent sent-notification archive.
+        androidx.appcompat.widget.Toolbar mainToolbar = findViewById(R.id.toolbar);
+        if (mainToolbar != null) {
+            android.view.MenuItem archiveItem = mainToolbar.getMenu().add("أرشيف الإشعارات");
+            archiveItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER);
+            mainToolbar.setOnMenuItemClickListener(item -> {
+                if (item == archiveItem) {
+                    startActivity(new Intent(MainActivity.this, ArchiveActivity.class));
+                    return true;
+                }
+                return false;
+            });
+        }
+
         // Check Privacy Policy and Disclaimer
         if (!SettingManager.isPrivacyAccepted()) {
             showPrivacyDialog();
