@@ -449,6 +449,16 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
             }
         }
 
+        // Import every row before prepareQueue filters historical rows and removes duplicates.
+        // The durable imported ledger is separate from the send queue and preserves prior status.
+        try {
+            new top.yztz.msggo.util.ImportedNotificationStore(MainActivity.this)
+                    .importRowsAuto(DataModel.getData(), DataModel.getTitles(), DataModel.getPath());
+        } catch (Exception e) {
+            Log.e(TAG, "Could not persist imported notification ledger", e);
+            ToastUtil.show(MainActivity.this, "تم تحميل الملف، لكن تعذر تحديث سجل الإشعارات الدائم.");
+        }
+
         // After restoring the saved template/SIM settings, rebuild the queue:
         // already-confirmed messages are removed and remaining rows are sorted by وقت.
         int removedFromQueue = DataModel.prepareQueue(MainActivity.this);
