@@ -1,6 +1,7 @@
 package top.yztz.msggo.activities;
 
 import android.os.Bundle;
+import android.app.DatePickerDialog;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
@@ -16,6 +17,10 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.List;
+import java.text.SimpleDateFormat;
+import java.text.ParsePosition;
+import java.util.Calendar;
+import java.util.Locale;
 
 import top.yztz.msggo.R;
 import top.yztz.msggo.util.ArchiveStore;
@@ -52,18 +57,45 @@ public class ArchiveActivity extends AppCompatActivity {
         body.setPadding(pad, pad, pad, pad);
 
         phoneInput = addField(body, "رقم الهاتف (اختياري)", "مثال: 777123456");
-        fromInput = addField(body, "من تاريخ (اختياري)", "YYYY-MM-DD");
-        toInput = addField(body, "إلى تاريخ (اختياري)", "YYYY-MM-DD");
+        fromInput = addField(body, "من تاريخ (اختياري)", "اضغط لاختيار تاريخ البداية");
+        toInput = addField(body, "إلى تاريخ (اختياري)", "اضغط لاختيار تاريخ النهاية");
+        fromInput.setFocusable(false);
+        fromInput.setClickable(true);
+        toInput.setFocusable(false);
+        toInput.setClickable(true);
+        fromInput.setOnClickListener(v -> chooseDate(fromInput));
+        toInput.setOnClickListener(v -> chooseDate(toInput));
         textInput = addField(body, "كلمة من نص الرسالة (اختياري)", "ابحث في محتوى الإشعار");
 
         TextView hint = new TextView(this);
-        hint.setText("استخدم YYYY-MM-DD للتاريخ. اترك الحقول فارغة لعرض الأرشيف كاملًا.");
+        hint.setText("اختر تاريخًا واحدًا في الحقلين لعرض ذلك اليوم فقط، أو اختر تاريخ البداية والنهاية لعرض فترة كاملة.");
         body.addView(hint);
+
+        Button todayButton = new Button(this);
+        todayButton.setText("عرض إشعارات يوم محدد: اليوم");
+        todayButton.setOnClickListener(v -> {
+            String today = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).format(Calendar.getInstance().getTime());
+            fromInput.setText(today);
+            toInput.setText(today);
+            runSearch();
+        });
+        body.addView(todayButton, new LinearLayout.LayoutParams(-1, -2));
 
         Button searchButton = new Button(this);
         searchButton.setText("بحث في الأرشيف");
         searchButton.setOnClickListener(v -> runSearch());
         body.addView(searchButton, new LinearLayout.LayoutParams(-1, -2));
+
+        Button clearButton = new Button(this);
+        clearButton.setText("مسح الفلاتر وعرض الكل");
+        clearButton.setOnClickListener(v -> {
+            phoneInput.setText("");
+            fromInput.setText("");
+            toInput.setText("");
+            textInput.setText("");
+            runSearch();
+        });
+        body.addView(clearButton, new LinearLayout.LayoutParams(-1, -2));
 
         count = new TextView(this);
         count.setPadding(0, dp(12), 0, dp(8));
@@ -152,8 +184,29 @@ public class ArchiveActivity extends AppCompatActivity {
         }
     }
 
+    private void chooseDate(TextInputEditText target) {
+        Calendar calendar = Calendar.getInstance();
+        String current = value(target);
+        if (validDate(current)) {
+            try {
+                java.util.Date parsed = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT).parse(current);
+                if (parsed != null) calendar.setTime(parsed);
+            } catch (Exception ignored) {}
+        }
+        DatePickerDialog dialog = new DatePickerDialog(this, (picker, year, month, day) -> {
+            String selected = String.format(Locale.ROOT, "%04d-%02d-%02d", year, month + 1, day);
+            target.setText(selected);
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        dialog.show();
+    }
+
     private boolean validDate(String value) {
-        return value.matches("\\d{4}-\\d{2}-\\d{2}");
+        if (!value.matches("\\d{4}-\\d{2}-\\d{2}")) return false;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.ROOT);
+        format.setLenient(false);
+        ParsePosition position = new ParsePosition(0);
+        java.util.Date parsed = format.parse(value, position);
+        return parsed != null && position.getIndex() == value.length();
     }
 
     private String value(TextInputEditText input) {
