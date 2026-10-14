@@ -1,6 +1,7 @@
 package top.yztz.msggo.activities;
 
 import android.os.Bundle;
+import android.content.Intent;
 import android.app.DatePickerDialog;
 import android.view.Gravity;
 import android.view.View;
@@ -25,6 +26,9 @@ import java.util.Locale;
 import top.yztz.msggo.R;
 import top.yztz.msggo.util.ArchiveStore;
 import top.yztz.msggo.util.ImportedNotificationStore;
+import top.yztz.msggo.data.DataModel;
+import top.yztz.msggo.data.Message;
+import top.yztz.msggo.util.FileUtil;
 
 /** Searchable, persistent archive of SMS notifications confirmed as sent. */
 public class ArchiveActivity extends AppCompatActivity {
@@ -183,6 +187,10 @@ public class ArchiveActivity extends AppCompatActivity {
             box.addView(eventDate);
             box.addView(content);
             box.addView(sent);
+            Button resend = new Button(this);
+            resend.setText("إعادة الإرسال");
+            resend.setOnClickListener(v -> confirmResend(row.phone, row.content));
+            box.addView(resend);
             card.addView(box);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
             lp.bottomMargin = dp(10);
@@ -214,11 +222,41 @@ public class ArchiveActivity extends AppCompatActivity {
             box.addView(eventDate);
             box.addView(content);
             box.addView(status);
+            Button resend = new Button(this);
+            resend.setText("إعادة الإرسال");
+            resend.setOnClickListener(v -> confirmResend(row.phone, row.message));
+            box.addView(resend);
             card.addView(box);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
             lp.bottomMargin = dp(10);
             results.addView(card, lp);
         }
+    }
+
+    private void confirmResend(String phone, String message) {
+        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle("تأكيد إعادة الإرسال")
+                .setMessage("هل تريد إعادة إرسال هذه الرسالة إلى " + phone + "؟")
+                .setNegativeButton("إلغاء", null)
+                .setPositiveButton("متابعة", (dialog, which) -> {
+                    if (!DataModel.loaded()) {
+                        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                                .setTitle("يلزم تحميل ملف الإشعارات")
+                                .setMessage("افتح الملف في الصفحة الرئيسية أولًا، ثم ارجع إلى الأرشيف لإعادة الإرسال.")
+                                .setPositiveButton("حسنًا", null).show();
+                        return;
+                    }
+                    String file = FileUtil.saveMessageArrayToFile(this, new Message[]{new Message(phone, message)});
+                    if (file == null) {
+                        new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                                .setMessage("تعذر تجهيز الرسالة لإعادة الإرسال.")
+                                .setPositiveButton("حسنًا", null).show();
+                        return;
+                    }
+                    Intent intent = new Intent(this, SendingActivity.class);
+                    intent.putExtra("to_send", file);
+                    startActivity(intent);
+                }).show();
     }
 
     private String statusLabel(String status) {
