@@ -64,6 +64,42 @@ public final class ImportedNotificationStore extends SQLiteOpenHelper {
         return s;
     }
 
+    /** Detects common Arabic/English spreadsheet headers and imports every valid row. */
+    public synchronized Summary importRowsAuto(List<HashMap<String,String>> rows, String[] titles, String source) {
+        if (titles == null) return new Summary();
+        String phone = findColumn(titles, "المستلم", "recipient", "receiver", "phone", "mobile",
+                "رقم الهاتف", "رقم الجوال", "الهاتف", "الجوال");
+        String message = findColumn(titles, "الرسالة", "message", "sms", "نص الرسالة", "محتوى الرسالة");
+        String date = findColumn(titles, "الوقت", "time", "datetime", "date time", "التاريخ والوقت");
+        if (TextUtils.isEmpty(phone)) phone = guessPhoneColumn(rows, titles);
+        return importRows(rows, phone, message, date, source);
+    }
+
+    private static String findColumn(String[] titles, String... aliases) {
+        for (String title : titles) {
+            String n = normalizeHeader(title);
+            for (String alias : aliases) if (n.equals(normalizeHeader(alias))) return title;
+        }
+        return "";
+    }
+
+    private static String guessPhoneColumn(List<HashMap<String,String>> rows, String[] titles) {
+        String best = ""; int bestCount = 0;
+        if (rows == null) return best;
+        for (String title : titles) {
+            String n = normalizeHeader(title);
+            if (n.matches(".*(movement|transaction|user|device|result|رقم الحركة|الحركة|المستخدم|الجهاز|النتيجة).*")) continue;
+            int count = 0;
+            for (HashMap<String,String> row : rows) if (row != null && PhoneNumberUtil.isPlausible(row.get(title))) count++;
+            if (count > bestCount) { bestCount = count; best = title; }
+        }
+        return best;
+    }
+
+    private static String normalizeHeader(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT).replaceAll("[\\s_\\-]+", " ");
+    }
+
     public synchronized boolean setStatus(String key, String status) {
         if (TextUtils.isEmpty(key) || !(PENDING.equals(status)||SENT.equals(status)||FAILED.equals(status)||ARCHIVED.equals(status))) return false;
         ContentValues v = new ContentValues(); v.put("status",status); v.put("updated_at",System.currentTimeMillis());
