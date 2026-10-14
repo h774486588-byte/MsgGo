@@ -144,6 +144,9 @@ public class WhatsAppQueueActivity extends AppCompatActivity {
         String message = DataModel.getMessageForRow((java.util.HashMap<String, String>) row);
         String scope = SentMessageStore.scopeKey(this, DataModel.getPath());
         SentMessageStore.markSent(this, scope, phone, message);
+        String eventDate = DataModel.getEventDateForMessage(phone, message);
+        new top.yztz.msggo.util.ArchiveStore(this).archiveSent(
+                phone, message, eventDate, DataModel.getPath());
         next();
     }
 
