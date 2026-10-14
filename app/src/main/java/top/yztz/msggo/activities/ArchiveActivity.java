@@ -24,10 +24,12 @@ import java.util.Locale;
 
 import top.yztz.msggo.R;
 import top.yztz.msggo.util.ArchiveStore;
+import top.yztz.msggo.util.ImportedNotificationStore;
 
 /** Searchable, persistent archive of SMS notifications confirmed as sent. */
 public class ArchiveActivity extends AppCompatActivity {
     private ArchiveStore store;
+    private ImportedNotificationStore importedStore;
     private TextInputEditText phoneInput, fromInput, toInput, textInput;
     private TextView count;
     private LinearLayout results;
@@ -35,6 +37,7 @@ public class ArchiveActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         store = new ArchiveStore(this);
+        importedStore = new ImportedNotificationStore(this);
         buildUi();
         runSearch();
     }
@@ -140,8 +143,11 @@ public class ArchiveActivity extends AppCompatActivity {
         }
 
         List<ArchiveStore.Record> rows = store.search(phone, from, to, text);
-        count.setText("عدد الإشعارات المؤرشفة المطابقة: " + rows.size());
-        if (rows.isEmpty()) {
+        List<ImportedNotificationStore.Item> importedRows =
+                importedStore.search(phone, from, to, text, "");
+        count.setText("الإشعارات المرسلة المؤرشفة: " + rows.size()
+                + " | جميع الإشعارات المستوردة: " + importedRows.size());
+        if (rows.isEmpty() && importedRows.isEmpty()) {
             TextView empty = new TextView(this);
             empty.setText("لا توجد إشعارات مطابقة.");
             empty.setGravity(Gravity.CENTER);
@@ -182,6 +188,44 @@ public class ArchiveActivity extends AppCompatActivity {
             lp.bottomMargin = dp(10);
             results.addView(card, lp);
         }
+
+        // Show all imported notifications as well as the confirmed-sent archive.
+        // Status is explicit so pending/failed historical rows are not mistaken for sent messages.
+        for (ImportedNotificationStore.Item row : importedRows) {
+            MaterialCardView card = new MaterialCardView(this);
+            card.setCardElevation(dp(2));
+            card.setRadius(dp(12));
+            card.setContentPadding(dp(14), dp(12), dp(14), dp(12));
+            LinearLayout box = new LinearLayout(this);
+            box.setOrientation(LinearLayout.VERTICAL);
+
+            TextView recipient = new TextView(this);
+            recipient.setText("المستلم: " + row.phone);
+            recipient.setTextSize(16);
+            TextView eventDate = new TextView(this);
+            eventDate.setText("تاريخ الإشعار: " + (row.eventDate == null || row.eventDate.isEmpty() ? "غير محدد" : row.eventDate));
+            TextView content = new TextView(this);
+            content.setText("الرسالة: " + row.message);
+            content.setPadding(0, dp(6), 0, dp(6));
+            TextView status = new TextView(this);
+            status.setText("الحالة: " + statusLabel(row.status));
+
+            box.addView(recipient);
+            box.addView(eventDate);
+            box.addView(content);
+            box.addView(status);
+            card.addView(box);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, -2);
+            lp.bottomMargin = dp(10);
+            results.addView(card, lp);
+        }
+    }
+
+    private String statusLabel(String status) {
+        if (ImportedNotificationStore.SENT.equals(status)) return "تم الإرسال";
+        if (ImportedNotificationStore.FAILED.equals(status)) return "فشل الإرسال";
+        if (ImportedNotificationStore.ARCHIVED.equals(status)) return "مؤرشف";
+        return "معلق / لم يتم تأكيد الإرسال";
     }
 
     private void chooseDate(TextInputEditText target) {
