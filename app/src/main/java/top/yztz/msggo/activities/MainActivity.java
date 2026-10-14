@@ -259,8 +259,10 @@ public class MainActivity extends AppCompatActivity implements HomeFrag.DataLoad
         // Direct entry point to the permanent sent-notification archive.
         androidx.appcompat.widget.Toolbar mainToolbar = findViewById(R.id.toolbar);
         if (mainToolbar != null) {
-            android.view.MenuItem archiveItem = mainToolbar.getMenu().add("أرشيف الإشعارات");
-            archiveItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_NEVER);
+            android.view.MenuItem archiveItem = mainToolbar.getMenu().add("الأرشيف");
+            archiveItem.setIcon(android.R.drawable.ic_menu_search);
+            archiveItem.setContentDescription("فتح أرشيف الإشعارات والبحث بالتاريخ أو رقم الهاتف");
+            archiveItem.setShowAsAction(android.view.MenuItem.SHOW_AS_ACTION_ALWAYS | android.view.MenuItem.SHOW_AS_ACTION_WITH_TEXT);
             mainToolbar.setOnMenuItemClickListener(item -> {
                 if (item == archiveItem) {
                     startActivity(new Intent(MainActivity.this, ArchiveActivity.class));
