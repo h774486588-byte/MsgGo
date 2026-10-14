@@ -341,6 +341,25 @@ public class DataModel implements Serializable {
         return originalCount - data.size();
     }
 
+    /**
+     * Finds the original spreadsheet date for an outgoing message so the archive
+     * can be searched by the notification's date, not merely the send date.
+     */
+    public static synchronized String getEventDateForMessage(String phone, String message) {
+        if (data == null || titles == null || numberColumn == null) return "";
+        String normalizedPhone = PhoneNumberUtil.fromSpreadsheet(phone);
+        String timeColumn = findTimeColumn();
+        if (timeColumn.isEmpty()) return "";
+        for (HashMap<String, String> row : data) {
+            String rowPhone = getNormalizedPhone(row);
+            String rowMessage = getMessageForRow(row);
+            if (!normalizedPhone.equals(rowPhone) || !String.valueOf(message).equals(rowMessage)) continue;
+            LocalDateTime parsed = parseQueueDateTime(row.get(timeColumn));
+            if (parsed != null) return parsed.toLocalDate().toString();
+        }
+        return "";
+    }
+
     public static void clear() {
         data = null;
         sourceRowNumbers = null;
