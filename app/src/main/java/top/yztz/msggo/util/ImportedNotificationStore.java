@@ -106,6 +106,24 @@ public final class ImportedNotificationStore extends SQLiteOpenHelper {
         return getWritableDatabase().update(TABLE,v,"message_key=?",new String[]{key}) > 0;
     }
 
+    /**
+     * Update a ledger row only when all available identity fields match exactly.
+     * Template-expanded messages may not match the raw spreadsheet message; in that
+     * case this method intentionally leaves the ledger unchanged rather than guessing.
+     */
+    public synchronized int setStatusMatching(String source, String phone, String message,
+                                               String eventDate, String status) {
+        if (TextUtils.isEmpty(phone) || message == null || TextUtils.isEmpty(status)) return 0;
+        ContentValues values = new ContentValues();
+        values.put("status", status);
+        values.put("updated_at", System.currentTimeMillis());
+        String normalizedPhone = PhoneNumberUtil.fromSpreadsheet(phone);
+        return getWritableDatabase().update(TABLE, values,
+                "source=? AND phone=? AND message=? AND event_date=?",
+                new String[]{source == null ? "" : source, normalizedPhone,
+                        message, eventDate == null ? "" : eventDate});
+    }
+
     public synchronized List<Item> search(String phone, String from, String to, String text, String status) {
         List<Item> out = new ArrayList<>(); StringBuilder where = new StringBuilder("1=1"); List<String> args = new ArrayList<>();
         if (!TextUtils.isEmpty(phone)) { where.append(" AND phone LIKE ?"); args.add("%"+PhoneNumberUtil.fromSpreadsheet(phone.trim())+"%"); }
